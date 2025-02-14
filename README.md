@@ -53,7 +53,7 @@
 - **Supabase** - Untuk backend yang scalable dan terintegrasi secara penuh dengan NEXT.js.
 
 ### 🎨 UI/UX
-- **Langsungan** - Yang penyting nyambung
+- **Langsungan** - Yang penting nyambung
 
 ---
 
