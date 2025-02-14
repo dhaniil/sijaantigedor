@@ -9,7 +9,6 @@ export default function LoginWithGitHub() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
     });
-    if (error) console.error('Login gagal:', error.message);
   };
 
   return (
