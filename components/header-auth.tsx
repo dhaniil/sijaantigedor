@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { createClient } from "@/utils/supabase/server";
+import { ThemeSwitcher } from "./theme-switcher";
 
 export default async function AuthButton() {
   const supabase = await createClient();
@@ -55,6 +56,7 @@ export default async function AuthButton() {
         <Button type="submit" variant={"outline"}>
           Sign out
         </Button>
+        <ThemeSwitcher />
       </form>
     </div>
   ) : (
