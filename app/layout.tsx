@@ -5,14 +5,9 @@ import { ThemeSwitcher } from "@/components/theme-switcher";
 import { hasEnvVars } from "@/utils/supabase/check-env-vars";
 import { Geist } from "next/font/google";
 import { ThemeProvider } from "next-themes";
-import { createClient } from "@supabase/supabase-js";
 import Link from "next/link";
 import "./globals.css";
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
+import LoginWithGitHub from "@/components/github-login-button";
 
 const defaultUrl = process.env.VERCEL_URL
   ? `https://${process.env.VERCEL_URL}`
@@ -28,14 +23,6 @@ const geistSans = Geist({
   display: "swap",
   subsets: ["latin"],
 });
-
-
-async function signInWithGithub() {
-  const { data, error } = await supabase.auth.signInWithOAuth({
-    provider: 'github',
-  })
-}
-
 
 export default function RootLayout({
   children,
@@ -61,6 +48,7 @@ export default function RootLayout({
                       <DeployButton />
                     </div>
                   </div>
+                  <LoginWithGitHub />
                   {!hasEnvVars ? <EnvVarWarning /> : <HeaderAuth />}
                 </div>
               </nav>
