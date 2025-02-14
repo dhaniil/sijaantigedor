@@ -2,7 +2,7 @@
 
 Terima kasih sudah tertarik untuk berkontribusi pada **Sija-Antigedor**!. Berikut adalah panduan untuk mempermudah proses kontribusi.
 
-## Rekomendasi sebelum ikut kontribusi:
+## Rekomendasi sebelum berkontribusi:
 - Sangat direkomendasikan menggunakan dokumentasi NEXT.js dan React
 
 ## Standar Format Commit Message
