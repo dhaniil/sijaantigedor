@@ -1,10 +1,14 @@
 # Contributing to Sija-Antigedor
-
 Terima kasih sudah tertarik untuk berkontribusi pada **Sija-Antigedor**!. Berikut adalah panduan untuk mempermudah proses kontribusi.
 
 ## Rekomendasi sebelum berkontribusi:
 - Sangat direkomendasikan menggunakan dokumentasi NEXT.js dan React sebagai referensi 
-- Mau belajar TypeScript (opsonal)
+- Mau belajar TypeScript (opsional)
+
+## Struktur Branch
+- `main` - Branch production yang sudah dideploy di Vercel
+- `dev` - Branch development untuk menampung fitur-fitur baru
+- `contri/*` - Branch untuk pengembangan fitur baru
 
 ## Standar Format Commit Message
 Gunakan prefix berikut untuk commit message:
@@ -24,7 +28,6 @@ hotfix: memperbaiki critical security issue
 ```
 
 ## Cara Berkontribusi
-
 1. **Fork Repository Ini**
    - Klik tombol "Fork" di pojok kanan atas halaman repo ini
    - Ini akan membuat repository sijaantigedor di akun kalian
@@ -38,6 +41,9 @@ hotfix: memperbaiki critical security issue
    # Set up remote upstream
    git remote add upstream https://github.com/dhaniil/sijaantigedor.git
 
+   # Checkout ke branch dev
+   git checkout dev
+
    # Install dependencies
    npm install
 
@@ -48,10 +54,15 @@ hotfix: memperbaiki critical security issue
    npm run dev
    ```
 
-3. **Buat Branch Baru**
+3. **Buat Branch Baru dari Branch Dev**
    ```bash
-   git checkout -b nama-branch
-   contoh: git checkout -b mirekan
+   # Pastikan kamu berada di branch dev dan sudah updated
+   git checkout dev
+   git pull upstream dev
+
+   # Buat branch baru untuk fitur
+   git checkout -b 
+   contoh: git checkout -b contri/dark-mode
    ```
 
 4. **Lakukan Perubahan dan Commit**
@@ -62,53 +73,56 @@ hotfix: memperbaiki critical security issue
 
 5. **Push Perubahan ke GitHub**
    ```bash
-   git push origin nama-branch
+   git push origin contri/nama-fitur
    ```
 
 6. **Buat Pull Request**
    - Buka repository ini di GitHub
-   - Buat Pull Request dari branch yang baru saja kamu push untuk direview Laztech dan Aryok
+   - Buat Pull Request dari branch `contri/nama-fitur` ke branch `dev`
+   - Pull Request akan direview oleh Laztech dan Aryok
 
-## Setelah Pull Request di-Merge
+## Setelah Pull Request di-Merge oleh Maintainer
 
 1. **Update Local Repository**
    ```bash
-   # Pindah ke branch main
-   git checkout main
+   # Pindah ke branch dev
+   git checkout dev
 
    # Sync fork dengan upstream
    git fetch upstream
-   git merge upstream/main
+   git merge upstream/dev
 
    # Update dependencies
    npm install
    ```
 
-2. **Bersihkan Branch yang Sudah di-Merge (Opsional)**
+2. **Bersihkan Branch yang Sudah di-Merge (Rekomen)**
    ```bash
-   # Hapus branch yang sudah di-merge
-   git branch -d nama-branch
+   # Hapus branch fitur yang sudah di-merge
+   git branch -d contri/nama-fitur
    ```
 
 3. **Memulai Kontribusi Baru**
    ```bash
-   # Pastikan main branch sudah updated
-   git checkout main
-   git pull upstream main
+   # Pastikan branch dev sudah updated
+   git checkout dev
+   git pull upstream dev
 
    # Buat branch baru untuk fitur selanjutnya
-   git checkout -b fitur-baru
+   git checkout -b feature/fitur-baru
    ```
 
 ## Pedoman Kode
 - Gunakan format kode yang konsisten
 - Pastikan tidak ada error atau warning sebelum commit
 - Jika menambahkan fitur baru, sertakan dokumentasi yang jelas bagaimana fitur baru itu
+- Pastikan fitur berjalan dengan baik di environment development sebelum membuat Pull Request
 
 ## Pelaporan Bug
 Jika menemukan bug, silakan buat Issue dengan format berikut:
 1. Deskripsi singkat tentang bug dan dampaknya
 2. Langkah-langkah untuk mereproduksi bug
 3. Disarankan menyertakan Screenshot atau log error
+4. Sebutkan di branch mana bug ditemukan (dev/main)
 
 Terima kasih atas kontribusi kalian!
