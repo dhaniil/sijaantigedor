@@ -6,9 +6,7 @@ Terima kasih sudah tertarik untuk berkontribusi pada **Sija-Antigedor**!. Beriku
 - Sangat direkomendasikan menggunakan dokumentasi NEXT.js dan React
 
 ## Standar Format Commit Message
-
 Gunakan prefix berikut untuk commit message:
-
 - `feat:` - Menambahkan fitur baru
 - `fix:` - Memperbaiki bug
 - `hotfix:` - Perbaikan darurat untuk environtment production
@@ -32,8 +30,21 @@ hotfix: memperbaiki critical security issue
 
 2. **Clone Repository yang Sudah di Fork**
    ```bash
+   # Clone repository
    git clone https://github.com/username-anda/sijaantigedor.git
    cd sijaantigedor
+
+   # Set up remote upstream
+   git remote add upstream https://github.com/dhaniil/sijaantigedor.git
+
+   # Install dependencies
+   npm install
+
+   # Copy environment variables
+   cp .env.example .env.local
+
+   # Run development server
+   npm run dev
    ```
 
 3. **Buat Branch Baru**
@@ -56,6 +67,37 @@ hotfix: memperbaiki critical security issue
 6. **Buat Pull Request**
    - Buka repository ini di GitHub
    - Buat Pull Request dari branch yang baru saja kamu push untuk direview Laztech dan Aryok
+
+## Setelah Pull Request di-Merge
+
+1. **Update Local Repository**
+   ```bash
+   # Pindah ke branch main
+   git checkout main
+
+   # Sync fork dengan upstream
+   git fetch upstream
+   git merge upstream/main
+
+   # Update dependencies
+   npm install
+   ```
+
+2. **Bersihkan Branch yang Sudah di-Merge (Opsional)**
+   ```bash
+   # Hapus branch yang sudah di-merge
+   git branch -d nama-branch
+   ```
+
+3. **Memulai Kontribusi Baru**
+   ```bash
+   # Pastikan main branch sudah updated
+   git checkout main
+   git pull upstream main
+
+   # Buat branch baru untuk fitur selanjutnya
+   git checkout -b fitur-baru
+   ```
 
 ## Pedoman Kode
 - Gunakan format kode yang konsisten
