@@ -3,7 +3,7 @@ Terima kasih sudah tertarik untuk berkontribusi pada **Sija-Antigedor**!. Beriku
 
 ## Rekomendasi sebelum berkontribusi:
 - Sangat direkomendasikan menggunakan dokumentasi NEXT.js dan React sebagai referensi 
-- Mau belajar TypeScript (opsional)
+- Mau belajar TypeScript (opsional😹)
 
 ## Struktur Branch
 - `main` - Branch production yang sudah dideploy di Vercel
@@ -79,7 +79,7 @@ hotfix: memperbaiki critical security issue
 6. **Buat Pull Request**
    - Buka repository ini di GitHub
    - Buat Pull Request dari branch `contri/nama-fitur` ke branch `dev`
-   - Pull Request akan direview oleh Laztech dan Aryok
+   - Pull Request akan direview oleh maintainer Laztech dan Aryok
 
 ## Setelah Pull Request di-Merge oleh Maintainer
 
@@ -118,11 +118,7 @@ hotfix: memperbaiki critical security issue
 - Jika menambahkan fitur baru, sertakan dokumentasi yang jelas bagaimana fitur baru itu
 - Pastikan fitur berjalan dengan baik di environment development sebelum membuat Pull Request
 
-## Pelaporan Bug
-Jika menemukan bug, silakan buat Issue dengan format berikut:
-1. Deskripsi singkat tentang bug dan dampaknya
-2. Langkah-langkah untuk mereproduksi bug
-3. Disarankan menyertakan Screenshot atau log error
-4. Sebutkan di branch mana bug ditemukan (dev/main)
+## Issue Bug
+Jika menemukan bug, silakan buat Issue dan sertakan screenshot Bugnya
 
 Terima kasih atas kontribusi kalian!
