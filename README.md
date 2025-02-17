@@ -16,21 +16,11 @@
 
 ## 🌟 Top Kontributor
 <!-- ALL-CONTRIBUTORS-LIST:START -->
-<table>
-  <tr>
-    <td align="center">
-      <a href="https://github.com/dhaniil">
-        <img src="https://github.com/dhaniil.png" width="100px;" alt="Daniil"/>
-        <br />
-        <sub><b>Daniil</b></sub>
-      </a>
-      <br />
-      <sub>Project Lead</sub>
-    </td>
-    <!-- Tambahkan kontributor lain di sini -->
-  </tr>
-</table>
-<!-- ALL-CONTRIBUTORS-LIST:END -->
+<a href="https://github.com/dhaniil/sijaantigedor/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=dhaniil/sijaantigedor" />
+</a>
+
+Made with [contrib.rocks](https://contrib.rocks).
 
 ## 🛠️ Tech Stack
 
