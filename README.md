@@ -15,10 +15,16 @@
 - 🔍 Total Pull Request: ![GitHub pull requests](https://img.shields.io/github/issues-pr/dhaniil/sijaantigedor)
 
 ## 🌟 Top Kontributor
-<!-- ALL-CONTRIBUTORS-LIST:START -->
-<a href="https://github.com/dhaniil/sijaantigedor/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=dhaniil/sijaantigedor" />
-</a>
+<!-- Top 10 Contributors -->
+[![Contributors](https://contrib.rocks/image?repo=dhaniil/sijaantigedor&max=10)](https://github.com/dhaniil/sijaantigedor/graphs/contributors)
+
+<!-- Detailed Contributors Stats -->
+<img src="https://github-contributor-stats.vercel.app/api?username=dhaniil&repo=sijaantigedor&limit=5&theme=dark&combine_all_yearly_contributions=true&hide_title=true" />
+
+<!-- Active Contributors Badge -->
+![Active Contributors](https://img.shields.io/github/contributors-anon/dhaniil/sijaantigedor)
+
+Made with [contrib.rocks](https://contrib.rocks) and [Github Contributor Stats](https://github.com/HwangTaehyun/github-contributor-stats)
 
 
 
