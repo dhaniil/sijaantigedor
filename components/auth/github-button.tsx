@@ -1,20 +1,21 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from "@supabase/ssr"
 import { useState } from "react"
 
 export default function GitHubButton() {
   const [isLoading, setIsLoading] = useState(false)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   const handleSignIn = async () => {
     try {
       setIsLoading(true)
       
-      // Using NEXT_PUBLIC_SITE_URL if available, or fallback to localhost
-      const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-      const redirectTo = `${siteUrl}/auth/callback`
+      const redirectTo = `${window.location.origin}/auth/callback`
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "github",
