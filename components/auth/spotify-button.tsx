@@ -11,14 +11,24 @@ export default function SpotifyButton() {
   const handleSignIn = async () => {
     try {
       setIsLoading(true)
-      await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider: "spotify",
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          scopes: "user-read-email user-read-private streaming user-library-read",
+          queryParams: {
+            code_challenge_method: 'S256', // Menggunakan PKCE untuk keamanan tambahan
+          }
         },
       })
+
+      if (error) {
+        console.error("Login error:", error.message)
+        throw error
+      }
     } catch (error) {
       console.error("Error:", error)
+      // Error ditangani oleh callback route
     } finally {
       setIsLoading(false)
     }

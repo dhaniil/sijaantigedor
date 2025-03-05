@@ -20,7 +20,7 @@ export default function Home() {
         {isClient && (
           <div className="absolute inset-0 w-full h-[600px]">
             <Orb
-              hoverIntensity={0.5}
+              hoverIntensity={1}
               rotateOnHover={true}
               hue={0}
               forceHoverState={false}
@@ -30,23 +30,27 @@ export default function Home() {
       </div>
 
       {/* Content */}
-      <div className="container px-4 mx-auto">
-        <div className="max-w-3xl mx-auto text-center space-y-8">
+      <div className="container px-4 mx-auto relative z-10">
+        <div className="max-w-3xl mx-auto text-center space-y-8 backdrop-blur-[2px]">
           <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 pb-2">
             12 SIJA Antigedor
           </h1>
           
           <div className="space-y-4">
-            <p className="text-xl md:text-2xl text-muted-foreground">
+            <p className="text-4xl md:text-2xl text-black dark:text-white font-extrabold ">
               Coming Soon
             </p>
-            <p className="text-lg text-muted-foreground">
+            <p className="text-xl text-black dark:text-white font-light">
               Sementara itu, kirim pesan dan lagu untuk teman-temanmu di Songfest!
             </p>
           </div>
 
           <div className="pt-4">
-            <Button asChild size="lg" className="animate-pulse hover:animate-none bg-gradient-to-r from-indigo-500 via-purple-500  text-white">
+            <Button 
+              asChild 
+              size="lg" 
+              className="animate-pulse hover:animate-none bg-gradient-to-r from-indigo-500/90 via-purple-500/90 to-pink-500/90 hover:from-indigo-500 hover:via-purple-500 hover:to-pink-500 text-white shadow-none hover:shadow-none"
+            >
               <Link href="/songfest">
                 Kirim Songfest Sekarang
               </Link>
