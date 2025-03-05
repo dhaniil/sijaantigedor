@@ -8,18 +8,26 @@ export default async function SongfestPage() {
   const cookieStore = cookies()
   const supabase = await createClient()
 
-  const { data: { user } } = await supabase.auth.getUser()
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession()
+  
+  if (sessionError) {
+    console.error('Session error:', sessionError)
+  }
 
   // Fetch existing songfests
-  const { data: songfests } = await supabase
+  const { data: songfests, error: songfestsError } = await supabase
     .from("songfests")
     .select("*")
     .order("created_at", { ascending: false })
 
+  if (songfestsError) {
+    console.error('Songfests error:', songfestsError)
+  }
+
   return (
     <main className="container mx-auto py-8 px-4">
       <div className="mb-12">
-        {user ? (
+        {session ? (
           <SongfestForm />
         ) : (
           <div className="text-center space-y-4 max-w-lg mx-auto p-6 bg-muted rounded-lg">
