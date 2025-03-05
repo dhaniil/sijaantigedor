@@ -10,13 +10,13 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: 'https://wbivnltxlamokknfbxmd.supabase.co/storage/v1/object/public/Image//SIJARmk.ico',
+        url: 'https://wbivnltxlamokknfbxmd.supabase.co/storage/v1/object/public/Image//Remake%20SJ2PNG.ico',
         sizes: 'any',
       },
     ],
     shortcut: [
       {
-        url: 'https://wbivnltxlamokknfbxmd.supabase.co/storage/v1/object/public/Image//SIJARmk.ico',
+        url: 'https://wbivnltxlamokknfbxmd.supabase.co/storage/v1/object/public/Image//Remake%20SJ2PNG.ico',
         sizes: 'any',
       },
     ],

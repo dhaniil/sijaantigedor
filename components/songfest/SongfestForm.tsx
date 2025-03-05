@@ -1,11 +1,14 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { SpotifySearch } from "./SpotifySearch"
+import { Session } from "@supabase/supabase-js"
+import { useRouter } from "next/navigation"
 
 interface Track {
   id: string
@@ -23,19 +26,57 @@ interface SongfestFormData {
   trackId: string
 }
 
-export function SongfestForm() {
+interface SongfestFormProps {
+  isDevelopment?: boolean
+}
+
+export function SongfestForm({ isDevelopment = false }: SongfestFormProps) {
+  const [loading, setLoading] = useState(false)
+  const [session, setSession] = useState<Session | null>(null)
   const [formData, setFormData] = useState<SongfestFormData>({
-    sender: "",
+    sender: isDevelopment ? "dev@example.com" : "",
     receiver: "",
     message: "",
     trackId: ""
   })
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
+  const supabase = createClientComponentClient()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!isDevelopment) {
+      // Get initial session
+      const getSession = async () => {
+        const { data: { session } } = await supabase.auth.getSession()
+        setSession(session)
+        if (session?.user) {
+          setFormData(prev => ({ ...prev, sender: session.user.email || "" }))
+        }
+      }
+      
+      getSession()
+
+      // Listen for auth changes
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setSession(session)
+        if (session?.user) {
+          setFormData(prev => ({ ...prev, sender: session.user.email || "" }))
+        }
+      })
+
+      return () => {
+        subscription.unsubscribe()
+      }
+    }
+  }, [supabase, isDevelopment])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!isDevelopment && !session) return
     
     try {
+      setLoading(true)
+      
       const response = await fetch("/api/songfest", {
         method: "POST",
         headers: {
@@ -50,15 +91,20 @@ export function SongfestForm() {
 
       // Reset form after successful submission
       setFormData({
-        sender: "",
+        sender: isDevelopment ? "dev@example.com" : (session?.user?.email || ""),
         receiver: "",
         message: "",
         trackId: ""
       })
       setSelectedTrack(null)
       
+      // Refresh page to show new songfest
+      router.refresh()
+      
     } catch (error) {
       console.error("Error submitting songfest:", error)
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -67,11 +113,16 @@ export function SongfestForm() {
     setFormData(prev => ({ ...prev, trackId: track.id }))
   }
 
+  if (!isDevelopment && !session) return null
+
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto space-y-6">
       <Card>
         <CardHeader>
           <h2 className="text-2xl font-semibold text-center">Kirim Songfest</h2>
+          {isDevelopment && (
+            <p className="text-sm text-center text-yellow-600">Development Mode</p>
+          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -82,9 +133,8 @@ export function SongfestForm() {
               <Input
                 id="sender"
                 value={formData.sender}
-                onChange={(e) => setFormData(prev => ({ ...prev, sender: e.target.value }))}
-                placeholder="Nama pengirim"
-                required
+                disabled
+                className="bg-muted"
               />
             </div>
             <div className="space-y-2">
@@ -138,8 +188,15 @@ export function SongfestForm() {
           )}
         </CardContent>
         <CardFooter>
-          <Button type="submit" className="w-full">
-            Kirim Songfest
+          <Button type="submit" className="w-full" disabled={loading}>
+            {loading ? (
+              <div className="flex items-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                <span>Mengirim...</span>
+              </div>
+            ) : (
+              "Kirim Songfest"
+            )}
           </Button>
         </CardFooter>
       </Card>
