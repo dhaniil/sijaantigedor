@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import LoginModal from "@/components/auth/login-modal"
 import ProfileMenu from "@/components/auth/profile-menu"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from '@supabase/ssr'  // Changed import
 import { useEffect, useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -13,7 +13,10 @@ import { Menu } from "lucide-react"
 function Navbar() {
   const [user, setUser] = useState<any>(null)
   const [isScrolled, setIsScrolled] = useState(false)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )  // Changed client initialization
 
   useEffect(() => {
     const handleScroll = () => {

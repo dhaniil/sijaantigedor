@@ -1,7 +1,7 @@
 "use client"
 
 import { createContext, useContext, useEffect, useState } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from '@supabase/ssr'
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 
 export const AuthContext = createContext<{ user: any | null }>({ user: null })
@@ -23,7 +23,10 @@ export function Providers({
 }: ProvidersProps) {
   const [mounted, setMounted] = useState(false)
   const [user, setUser] = useState<any | null>(null)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
 
   useEffect(() => {
     setMounted(true)
