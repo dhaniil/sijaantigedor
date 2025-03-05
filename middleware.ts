@@ -17,10 +17,13 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
+          // Set secure and sameSite options for better security
           response.cookies.set({
             name,
             value,
             ...options,
+            secure: true,
+            sameSite: 'lax'
           })
         },
         remove(name: string, options: CookieOptions) {
@@ -34,7 +37,30 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getSession()
+  try {
+    const { data: { session }, error } = await supabase.auth.getSession()
+
+    // Handle protected routes
+    const protectedPaths = ['/songfest']
+    const isProtectedPath = protectedPaths.some(path => 
+      request.nextUrl.pathname.startsWith(path)
+    )
+
+    if (isProtectedPath && !session) {
+      // Redirect to home page if trying to access protected route without session
+      const redirectUrl = request.nextUrl.clone()
+      redirectUrl.pathname = '/'
+      redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname)
+      return NextResponse.redirect(redirectUrl)
+    }
+
+    if (error) {
+      console.error('Auth error:', error.message)
+    }
+
+  } catch (e) {
+    console.error('Middleware error:', e)
+  }
 
   return response
 }

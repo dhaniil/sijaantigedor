@@ -55,9 +55,9 @@ export default function ProfileMenu({ user }: ProfileMenuProps) {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => router.push('/profile')}>
+        {/* <DropdownMenuItem onClick={() => router.push('/profile')}>
           Profile
-        </DropdownMenuItem>
+        </DropdownMenuItem> */}
         <DropdownMenuItem onClick={handleSignOut}>
           Log out
         </DropdownMenuItem>

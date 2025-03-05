@@ -10,20 +10,51 @@ export const createClient = async () => {
     {
       cookies: {
         getAll() {
-          return cookieStore.getAll();
+          try {
+            return cookieStore.getAll();
+          } catch (error) {
+            console.error('Error getting cookies:', error);
+            return [];
+          }
         },
         setAll(cookiesToSet) {
           try {
             cookiesToSet.forEach(({ name, value, options }) => {
-              cookieStore.set(name, value, options);
+              // Tambahkan opsi security untuk cookies
+              const secureOptions = {
+                ...options,
+                secure: true,
+                sameSite: "lax" as "lax",
+                httpOnly: true
+              };
+              cookieStore.set(name, value, secureOptions);
             });
           } catch (error) {
-            // The `set` method was called from a Server Component.
-            // This can be ignored if you have middleware refreshing
-            // user sessions.
+            // Log error untuk debugging tapi tetap jalankan
+            console.error('Error setting cookies:', error);
+            // Mencoba set cookies satu per satu untuk menghindari kegagalan total
+            cookiesToSet.forEach(({ name, value, options }) => {
+              try {
+                const secureOptions = {
+                  ...options,
+                secure: true,
+                sameSite: "lax" as "lax",
+                httpOnly: true
+                };
+                cookieStore.set(name, value, secureOptions);
+              } catch (e) {
+                console.error(`Failed to set cookie ${name}:`, e);
+              }
+            });
           }
         },
       },
+      // Tambahkan auth config untuk persistensi
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
     },
   );
 };
