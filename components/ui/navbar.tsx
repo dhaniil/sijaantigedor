@@ -6,6 +6,9 @@ import LoginModal from "@/components/auth/login-modal"
 import ProfileMenu from "@/components/auth/profile-menu"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useEffect, useState } from "react"
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Button } from "@/components/ui/button"
+import { Menu } from "lucide-react"
 
 function Navbar() {
   const [user, setUser] = useState<any>(null)
@@ -53,7 +56,7 @@ function Navbar() {
                 </Link>
               </div>
 
-              {/* Default Menu (Visible before scroll) */}
+              {/* Desktop Menu */}
               <div className={`hidden md:flex items-center ml-6 space-x-6 transition-all duration-300 ease-in-out ${
                 !isScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1 pointer-events-none'
               }`}>
@@ -64,27 +67,25 @@ function Navbar() {
             <div className="flex items-center space-x-4">
               <ThemeSwitcher />
               {user ? <ProfileMenu user={user} /> : <LoginModal />}
-              <button className="md:hidden p-2">
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="3" y1="12" x2="21" y2="12" />
-                  <line x1="3" y1="6" x2="21" y2="6" />
-                  <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-              </button>
+
+              {/* Mobile Menu */}
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="ghost" size="icon" className="md:hidden">
+                    <Menu className="h-5 w-5" />
+                    <span className="sr-only">Toggle menu</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-[240px] sm:w-[300px]">
+                  <div className="flex flex-col space-y-4 py-4">
+                    <NavLinks />
+                  </div>
+                </SheetContent>
+              </Sheet>
             </div>
           </div>
 
-          {/* Scrolled Menu */}
+          {/* Desktop Scrolled Menu */}
           <div 
             className={`hidden md:flex items-start transition-all duration-300 ease-in-out border-t border-border/50 ${
               isScrolled ? 'h-12 opacity-100 translate-y-0' : 'h-0 opacity-0 -translate-y-1 pointer-events-none overflow-hidden'

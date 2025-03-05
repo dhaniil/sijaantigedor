@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import SpotifyButton from "./spotify-button"
+import GitHubButton from "./github-button"
 
 export default function LoginModal() {
   const [isOpen, setIsOpen] = useState(false)
@@ -15,12 +16,13 @@ export default function LoginModal() {
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Welcome Back!</DialogTitle>
+          <DialogTitle>Selamat Datang!</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
           <SpotifyButton />
+            <GitHubButton />
           <p className="text-center text-sm text-muted-foreground">
-            Login to access exclusive features and content
+            Login untuk memeriahkan
           </p>
         </div>
       </DialogContent>
