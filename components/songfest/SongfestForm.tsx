@@ -85,8 +85,10 @@ export function SongfestForm({ isDevelopment = false }: SongfestFormProps) {
         body: JSON.stringify(formData),
       })
 
+      const responseData = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to submit songfest")
+        throw new Error(responseData.error || "Failed to submit songfest")
       }
 
       // Reset form after successful submission
@@ -103,6 +105,7 @@ export function SongfestForm({ isDevelopment = false }: SongfestFormProps) {
       
     } catch (error) {
       console.error("Error submitting songfest:", error)
+      alert(`Error: ${error instanceof Error ? error.message : "Failed to submit songfest"}`)
     } finally {
       setLoading(false)
     }

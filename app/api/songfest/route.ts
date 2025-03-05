@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const { data: { session } } = await supabase.auth.getSession()
     if (!session) {
       return NextResponse.json(
-        { error: "Unauthorized" },
+        { error: "Unauthorized - Please log in again" },
         { status: 401 }
       )
     }
@@ -19,12 +19,20 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { sender, receiver, message, trackId } = body
 
+    console.log("Received songfest submission:", { sender, receiver, message, trackId });
+
     // Validate required fields
-    if (!sender || !receiver || !message || !trackId) {
-      return NextResponse.json(
-        { error: "Missing required fields" },
-        { status: 400 }
-      )
+    if (!sender) {
+      return NextResponse.json({ error: "Sender is required" }, { status: 400 })
+    }
+    if (!receiver) {
+      return NextResponse.json({ error: "Receiver is required" }, { status: 400 })
+    }
+    if (!message) {
+      return NextResponse.json({ error: "Message is required" }, { status: 400 })
+    }
+    if (!trackId) {
+      return NextResponse.json({ error: "No track selected" }, { status: 400 })
     }
 
     // Insert into songfests table
@@ -45,16 +53,16 @@ export async function POST(request: Request) {
     if (error) {
       console.error("Database error:", error)
       return NextResponse.json(
-        { error: "Failed to save songfest" },
+        { error: `Database error: ${error.message}` },
         { status: 500 }
       )
     }
 
-    return NextResponse.json(data)
+    return NextResponse.json({ success: true, data })
   } catch (error) {
     console.error("Server error:", error)
     return NextResponse.json(
-      { error: "Internal server error" },
+      { error: `Server error: ${error instanceof Error ? error.message : "Unknown error"}` },
       { status: 500 }
     )
   }

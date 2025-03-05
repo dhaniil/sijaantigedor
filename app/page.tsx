@@ -58,6 +58,8 @@ export default function Home() {
           </div>
         </div>
       </div>
+      <div className="min-h-[100vh]">
+        </div>
     </main>
   )
 }
