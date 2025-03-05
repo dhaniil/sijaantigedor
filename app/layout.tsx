@@ -7,6 +7,20 @@ import { Analytics } from "@vercel/analytics/react"
 export const metadata: Metadata = {
   title: "12 SIJA Antigedor",
   description: "Created by 12 SIJA Antigedor",
+  icons: {
+    icon: [
+      {
+        url: 'https://wbivnltxlamokknfbxmd.supabase.co/storage/v1/object/public/Image//SIJARmk.ico',
+        sizes: 'any',
+      },
+    ],
+    shortcut: [
+      {
+        url: 'https://wbivnltxlamokknfbxmd.supabase.co/storage/v1/object/public/Image//SIJARmk.ico',
+        sizes: 'any',
+      },
+    ],
+  },
   openGraph: {
     title: "12 SIJA Antigedor",
     description: "Created by 12 SIJA Antigedor",

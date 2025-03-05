@@ -40,19 +40,8 @@ export async function middleware(request: NextRequest) {
   try {
     const { data: { session }, error } = await supabase.auth.getSession()
 
-    // Handle protected routes
-    const protectedPaths = ['/songfest']
-    const isProtectedPath = protectedPaths.some(path => 
-      request.nextUrl.pathname.startsWith(path)
-    )
-
-    if (isProtectedPath && !session) {
-      // Redirect to home page if trying to access protected route without session
-      const redirectUrl = request.nextUrl.clone()
-      redirectUrl.pathname = '/'
-      redirectUrl.searchParams.set('redirectedFrom', request.nextUrl.pathname)
-      return NextResponse.redirect(redirectUrl)
-    }
+    // Allow access to all paths, session check will be handled by the page components
+    await supabase.auth.getSession()
 
     if (error) {
       console.error('Auth error:', error.message)

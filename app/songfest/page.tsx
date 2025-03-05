@@ -35,7 +35,7 @@ export default async function SongfestPage() {
             <p className="text-muted-foreground">
               Login dengan Spotify untuk mulai mengirim pesan dan lagu ke teman-temanmu.
             </p>
-            <LoginModal />
+          <LoginModal redirectPath="/songfest" />
           </div>
         )}
       </div>

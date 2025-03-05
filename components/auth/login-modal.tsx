@@ -6,7 +6,11 @@ import { Button } from "@/components/ui/button"
 import SpotifyButton from "./spotify-button"
 import GitHubButton from "./github-button"
 
-export default function LoginModal() {
+type LoginModalProps = {
+  redirectPath?: string;
+}
+
+export default function LoginModal({ redirectPath }: LoginModalProps) {
   const [isOpen, setIsOpen] = useState(false)
 
   return (
@@ -19,7 +23,7 @@ export default function LoginModal() {
           <DialogTitle>Selamat Datang!</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <SpotifyButton />
+          <SpotifyButton redirectPath={redirectPath} />
             <GitHubButton />
           <p className="text-center text-sm text-muted-foreground">
             Login untuk memeriahkan

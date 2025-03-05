@@ -4,7 +4,11 @@ import { Button } from "@/components/ui/button"
 import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
 import { useState } from "react"
 
-export default function SpotifyButton() {
+type SpotifyButtonProps = {
+  redirectPath?: string;
+}
+
+export default function SpotifyButton({ redirectPath }: SpotifyButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
   const supabase = createClientComponentClient()
 
@@ -14,7 +18,8 @@ export default function SpotifyButton() {
       
       // Menggunakan NEXT_PUBLIC_SITE_URL jika tersedia, atau fallback ke window.location.origin
       const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'
-      const redirectTo = `${siteUrl}/auth/callback`
+      const currentPath = redirectPath || window.location.pathname
+      const redirectTo = `${siteUrl}/auth/callback?redirect_to=${currentPath}`
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "spotify",
