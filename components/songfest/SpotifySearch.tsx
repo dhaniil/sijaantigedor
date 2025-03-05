@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { useDebounce } from "@/hooks/use-debounce"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from '@supabase/ssr'
 
 interface Track {
   id: string
@@ -26,7 +26,10 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
   const [error, setError] = useState<string | null>(null)
   const debouncedQuery = useDebounce(query, 500)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const isDevelopment = process.env.NEXT_PUBLIC_APP_ENV === 'development'
   const [debug, setDebug] = useState<string | null>(null); // For debug info
 

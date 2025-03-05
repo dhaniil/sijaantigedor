@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createClientComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createBrowserClient } from '@supabase/ssr'
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
@@ -27,52 +27,53 @@ interface SongfestFormData {
 }
 
 interface SongfestFormProps {
-  isDevelopment?: boolean
+  onSuccess?: () => void
 }
 
-export function SongfestForm({ isDevelopment = false }: SongfestFormProps) {
+export function SongfestForm({ onSuccess }: SongfestFormProps) {
   const [loading, setLoading] = useState(false)
   const [session, setSession] = useState<Session | null>(null)
   const [formData, setFormData] = useState<SongfestFormData>({
-    sender: isDevelopment ? "dev@example.com" : "",
+    sender: "",
     receiver: "",
     message: "",
     trackId: ""
   })
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
-  const supabase = createClientComponentClient()
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const router = useRouter()
 
   useEffect(() => {
-    if (!isDevelopment) {
-      // Get initial session
-      const getSession = async () => {
-        const { data: { session } } = await supabase.auth.getSession()
-        setSession(session)
-        if (session?.user) {
-          setFormData(prev => ({ ...prev, sender: session.user.email || "" }))
-        }
-      }
-      
-      getSession()
-
-      // Listen for auth changes
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-        setSession(session)
-        if (session?.user) {
-          setFormData(prev => ({ ...prev, sender: session.user.email || "" }))
-        }
-      })
-
-      return () => {
-        subscription.unsubscribe()
+    // Get initial session
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession()
+      setSession(session)
+      if (session?.user) {
+        setFormData(prev => ({ ...prev, sender: session.user.email || "" }))
       }
     }
-  }, [supabase, isDevelopment])
+    
+    getSession()
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+      if (session?.user) {
+        setFormData(prev => ({ ...prev, sender: session.user.email || "" }))
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
+  }, [supabase])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!isDevelopment && !session) return
+    if (!session) return
     
     try {
       setLoading(true)
@@ -93,15 +94,16 @@ export function SongfestForm({ isDevelopment = false }: SongfestFormProps) {
 
       // Reset form after successful submission
       setFormData({
-        sender: isDevelopment ? "dev@example.com" : (session?.user?.email || ""),
+        sender: session?.user?.email || "",
         receiver: "",
         message: "",
         trackId: ""
       })
       setSelectedTrack(null)
       
-      // Refresh page to show new songfest
+      // Refresh page and call onSuccess if provided
       router.refresh()
+      onSuccess?.()
       
     } catch (error) {
       console.error("Error submitting songfest:", error)
@@ -116,16 +118,13 @@ export function SongfestForm({ isDevelopment = false }: SongfestFormProps) {
     setFormData(prev => ({ ...prev, trackId: track.id }))
   }
 
-  if (!isDevelopment && !session) return null
+  if (!session) return null
 
   return (
     <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto space-y-6">
       <Card>
         <CardHeader>
           <h2 className="text-2xl font-semibold text-center">Kirim Songfest</h2>
-          {isDevelopment && (
-            <p className="text-sm text-center text-yellow-600">Development Mode</p>
-          )}
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
