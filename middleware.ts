@@ -2,11 +2,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  let response = NextResponse.next({
-    request: {
-      headers: request.headers,
-    },
-  })
+  const response = NextResponse.next()
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -17,39 +13,16 @@ export async function middleware(request: NextRequest) {
           return request.cookies.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          // Set secure and sameSite options for better security
-          response.cookies.set({
-            name,
-            value,
-            ...options,
-            secure: true,
-            sameSite: 'lax'
-          })
+          response.cookies.set({ name, value, ...options })
         },
         remove(name: string, options: CookieOptions) {
-          response.cookies.set({
-            name,
-            value: '',
-            ...options,
-          })
+          response.cookies.set({ name, value: '', ...options })
         },
       },
     }
   )
 
-  try {
-    const { data: { session }, error } = await supabase.auth.getSession()
-
-    // Allow access to all paths, session check will be handled by the page components
-    await supabase.auth.getSession()
-
-    if (error) {
-      console.error('Auth error:', error.message)
-    }
-
-  } catch (e) {
-    console.error('Middleware error:', e)
-  }
+  await supabase.auth.getSession()
 
   return response
 }

@@ -1,67 +1,38 @@
-import { createClient } from "@/utils/supabase/server"
-import { NextResponse } from "next/server"
-import { cookies } from "next/headers"
+import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { cookies } from 'next/headers'
+import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
-  try {
-    const requestUrl = new URL(request.url)
-    const code = requestUrl.searchParams.get("code")
-    const origin = requestUrl.origin
-    const redirectTo = requestUrl.searchParams.get("redirect_to")?.toString()
-    const next = redirectTo || "/"
+  const { searchParams, origin } = new URL(request.url)
+  const code = searchParams.get('code')
+  const next = searchParams.get('next') ?? '/'
 
-    // Check jika ada error dari Spotify OAuth
-    const error = requestUrl.searchParams.get("error")
-    const errorDescription = requestUrl.searchParams.get("error_description")
+  if (code) {
+    const cookieStore = await cookies()
 
-    if (error) {
-      console.error("Spotify OAuth error:", error, errorDescription)
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-    }
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return cookieStore.get(name)?.value
+          },
+          set(name: string, value: string, options: CookieOptions) {
+            cookieStore.set({ name, value, ...options })
+          },
+          remove(name: string, options: CookieOptions) {
+            cookieStore.set({ name, value: '', ...options })
+          },
+        },
+      }
+    )
 
-    if (!code) {
-      console.error("No code present in callback")
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-    }
-
-    const cookieStore = cookies()
-    const supabase = await createClient()
-
-    // Exchange code untuk session
-    const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
-    
-    if (exchangeError) {
-      console.error("Session exchange error:", exchangeError)
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-    }
-
-    // Get session untuk verifikasi
-    const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-    
-    if (sessionError || !session) {
-      console.error("Session verification error:", sessionError)
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-    }
-
-    // Verifikasi token Spotify
-    if (!session.provider_token) {
-      console.error("No Spotify token in session")
-      await supabase.auth.signOut()
-      return NextResponse.redirect(`${origin}/auth/auth-code-error`)
-    }
-
-    const forwardedHost = request.headers.get('x-forwarded-host')
-    const isLocalEnv = process.env.NODE_ENV === 'development'
-    
-    if (isLocalEnv) {
-      return NextResponse.redirect(`${origin}${next}`)
-    } else if (forwardedHost) {
-      return NextResponse.redirect(`https://${forwardedHost}${next}`)
-    } else {
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
       return NextResponse.redirect(`${origin}${next}`)
     }
-  } catch (error) {
-    console.error("Unexpected error in callback:", error)
-    return NextResponse.redirect(`${origin}/auth/auth-code-error`)
   }
+
+  return NextResponse.redirect(`${origin}/auth/auth-code-error`)
 }
