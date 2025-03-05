@@ -31,7 +31,7 @@ export default function Home() {
 
       {/* Content */}
       <div className="container px-4 mx-auto relative z-10">
-        <div className="max-w-3xl mx-auto text-center space-y-8 backdrop-blur-[2px]">
+        <div className="max-w-3xl bg-transparent dark:bg-transparent mx-auto text-center space-y-8 backdrop-blur-[2px]">
           <h1 className="text-4xl md:text-6xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 pb-2">
             12 SIJA Antigedor
           </h1>

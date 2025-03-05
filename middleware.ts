@@ -34,26 +34,7 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  const { data: { session }} = await supabase.auth.getSession()
-
-  // Jika tidak ada session dan mencoba mengakses protected route
-  if (!session && (request.nextUrl.pathname.startsWith('/protected'))) {
-    return NextResponse.redirect(new URL('/', request.url))
-  }
-
-  // Update user's auth state
-  const {
-    data: { user },
-  } = await supabase.auth.getUser()
-
-  // Set auth cookie for client
-  if (user) {
-    response.cookies.set('auth-state', 'authenticated', {
-      httpOnly: true,
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 1 week
-    })
-  }
+  await supabase.auth.getSession()
 
   return response
 }

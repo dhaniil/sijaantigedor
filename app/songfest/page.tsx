@@ -1,12 +1,14 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs"
+import { createClient } from "@/utils/supabase/server"
 import { cookies } from "next/headers"
 import { SongfestForm } from "@/components/songfest/SongfestForm"
 import { SongCard } from "@/components/songfest/SongCard"
 import LoginModal from "@/components/auth/login-modal"
 
 export default async function SongfestPage() {
-  const supabase = createServerComponentClient({ cookies })
-  const { data: { session }} = await supabase.auth.getSession()
+  const cookieStore = cookies()
+  const supabase = await createClient()
+
+  const { data: { user } } = await supabase.auth.getUser()
 
   // Fetch existing songfests
   const { data: songfests } = await supabase
@@ -17,7 +19,7 @@ export default async function SongfestPage() {
   return (
     <main className="container mx-auto py-8 px-4">
       <div className="mb-12">
-        {session ? (
+        {user ? (
           <SongfestForm />
         ) : (
           <div className="text-center space-y-4 max-w-lg mx-auto p-6 bg-muted rounded-lg">
