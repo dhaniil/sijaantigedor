@@ -38,7 +38,7 @@ export default function Home() {
           
           <div className="space-y-4">
             <p className="text-4xl md:text-2xl text-black dark:text-white font-extrabold ">
-              Coming Soon
+              Coming Soon: Fitur lainnya
             </p>
             <p className="text-xl text-black dark:text-white font-light">
               Sementara itu, kirim pesan dan lagu untuk teman-temanmu di Songfest!

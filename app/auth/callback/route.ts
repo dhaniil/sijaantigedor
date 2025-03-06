@@ -28,10 +28,31 @@ export async function GET(request: Request) {
       }
     )
 
-    const { error } = await supabase.auth.exchangeCodeForSession(code)
-    if (!error) {
-      return NextResponse.redirect(`${origin}${next}`)
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+    
+    if (error) {
+      console.error('Auth exchange error:', error)
+      return NextResponse.redirect(`${origin}/auth/auth-code-error?error=${encodeURIComponent(error.message)}`)
     }
+
+    if (!data.session?.provider_token) {
+      console.error('No provider token in session')
+      return NextResponse.redirect(`${origin}/auth/auth-code-error?error=missing_provider_token`)
+    }
+
+    // Test the token immediately to ensure it works
+    const testResponse = await fetch('https://api.spotify.com/v1/me', {
+      headers: { 
+        Authorization: `Bearer ${data.session.provider_token}`
+      }
+    })
+
+    if (!testResponse.ok) {
+      console.error('Token validation failed:', await testResponse.text())
+      return NextResponse.redirect(`${origin}/auth/auth-code-error?error=token_validation_failed`)
+    }
+
+    return NextResponse.redirect(`${origin}${next}`)
   }
 
   return NextResponse.redirect(`${origin}/auth/auth-code-error`)

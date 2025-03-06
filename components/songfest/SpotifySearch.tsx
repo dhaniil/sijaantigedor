@@ -25,7 +25,10 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const debouncedQuery = useDebounce(query, 500)
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authStatus, setAuthStatus] = useState<{
+    isAuthenticated: boolean;
+    provider?: string | null;
+  }>({ isAuthenticated: false })
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -37,12 +40,15 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
   useEffect(() => {
     const checkAuth = async () => {
       if (isDevelopment) {
-        setIsAuthenticated(true)
+        setAuthStatus({ isAuthenticated: true })
         return
       }
 
       const { data: { session } } = await supabase.auth.getSession()
-      setIsAuthenticated(!!session)
+      setAuthStatus({
+        isAuthenticated: !!session,
+        provider: session?.user?.app_metadata?.provider
+      })
     }
 
     checkAuth()
@@ -51,7 +57,15 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
   // Search when query changes
   useEffect(() => {
     if (!debouncedQuery || debouncedQuery.length < 2) return
-    if (!isAuthenticated && !isDevelopment) return
+    if (!authStatus.isAuthenticated && !isDevelopment) {
+      setError("Please login first to search tracks")
+      return
+    }
+
+    if (authStatus.provider && authStatus.provider !== 'spotify' && !isDevelopment) {
+      setError("Please login with Spotify to search tracks")
+      return
+    }
 
     const searchTracks = async () => {
       setLoading(true)
@@ -68,7 +82,7 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
         
         const endTime = Date.now();
         const responseTime = endTime - startTime;
-        console.log(`Search request took ${responseTime}ms`);
+        // console.log(`Search request took ${responseTime}ms`);
         
         // Log raw response details for debugging
         setDebug(`Status: ${response.status}, Time: ${responseTime}ms`);
@@ -82,7 +96,7 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
         let data;
         try {
           data = await response.json();
-          console.log("Search results:", data);
+          // console.log("Search results:", data);
         } catch (parseError) {
           console.error("Failed to parse JSON response:", parseError);
           throw new Error("Invalid response format");
@@ -90,7 +104,7 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
         
         // Check if items exists and is an array
         if (data && data.items && Array.isArray(data.items)) {
-          console.log(`Found ${data.items.length} results`);
+          // console.log(`Found ${data.items.length} results`);
           setResults(data.items);
           if (data.items.length === 0) {
             setDebug(prev => `${prev || ''} | No results found`);
@@ -111,7 +125,7 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
     }
 
     searchTracks();
-  }, [debouncedQuery, isAuthenticated, isDevelopment]);
+  }, [debouncedQuery, authStatus.isAuthenticated, isDevelopment, authStatus.provider]);
 
   return (
     <div className="space-y-4">
@@ -120,18 +134,26 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
           placeholder="Cari lagu di Spotify..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          disabled={loading || (!isAuthenticated && !isDevelopment)}
+          disabled={loading || (!authStatus.isAuthenticated && !isDevelopment)}
           className="w-full"
         />
         {error && (
-          <div className="text-xs text-red-500 p-2 bg-red-50 dark:bg-red-900/20 rounded">
-            Error: {error}
-            {isDevelopment && debug && (
-              <div className="mt-1 text-xs opacity-75">
-                <code>{debug}</code>
-              </div>
-            )}
-          </div>
+        <div className="text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded space-y-1">
+          <p className="text-red-500">{error}</p>
+          {error?.includes('Please login with Spotify') && (
+            <button 
+              onClick={() => window.location.href = '/auth/login'} 
+              className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
+            >
+              Click here to login with Spotify →
+            </button>
+          )}
+          {isDevelopment && debug && (
+            <div className="text-xs opacity-75">
+              <code>{debug}</code>
+            </div>
+          )}
+        </div>
         )}
       </div>
 

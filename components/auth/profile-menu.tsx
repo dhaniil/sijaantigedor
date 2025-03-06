@@ -13,7 +13,8 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SongfestForm } from "@/components/songfest/SongfestForm"
 import { useState } from "react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { MySongfestList } from "@/components/songfest/MySongfestList"
 
 interface ProfileMenuProps {
   user: {
@@ -29,6 +30,7 @@ interface ProfileMenuProps {
 export default function ProfileMenu({ user }: ProfileMenuProps) {
   const router = useRouter()
   const [isCreateSongfestOpen, setIsCreateSongfestOpen] = useState(false)
+  const [isMySongfestOpen, setIsMySongfestOpen] = useState(false)
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -66,18 +68,43 @@ export default function ProfileMenu({ user }: ProfileMenuProps) {
           <DropdownMenuItem onClick={() => setIsCreateSongfestOpen(true)}>
             Buat Songfest
           </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setIsMySongfestOpen(true)}>
+            My Songfest
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={handleSignOut}>
             Log out
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
 
-      <Dialog open={isCreateSongfestOpen} onOpenChange={setIsCreateSongfestOpen}>
+      <Dialog 
+        open={isCreateSongfestOpen} 
+        onOpenChange={(open) => {
+          setIsCreateSongfestOpen(open)
+          // Reset form state when dialog is closed
+          if (!open) {
+            router.refresh()
+          }
+        }}
+      >
         <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Buat Songfest</DialogTitle>
+          </DialogHeader>
           <SongfestForm onSuccess={() => {
             setIsCreateSongfestOpen(false)
             router.refresh()
           }} />
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isMySongfestOpen} onOpenChange={setIsMySongfestOpen}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>My Songfests</DialogTitle>
+          </DialogHeader>
+          <MySongfestList />
         </DialogContent>
       </Dialog>
     </>

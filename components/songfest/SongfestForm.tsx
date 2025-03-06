@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { createBrowserClient } from '@supabase/ssr'
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
+import { Card, CardContent, CardFooter } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
@@ -28,16 +28,24 @@ interface SongfestFormData {
 
 interface SongfestFormProps {
   onSuccess?: () => void
+  initialData?: {
+    id: string
+    sender: string
+    receiver: string
+    message: string
+    track_id: string
+  }
+  mode?: 'create' | 'edit'
 }
 
-export function SongfestForm({ onSuccess }: SongfestFormProps) {
+export function SongfestForm({ onSuccess, initialData, mode = 'create' }: SongfestFormProps) {
   const [loading, setLoading] = useState(false)
   const [session, setSession] = useState<Session | null>(null)
   const [formData, setFormData] = useState<SongfestFormData>({
-    sender: "",
-    receiver: "",
-    message: "",
-    trackId: ""
+    sender: initialData?.sender || "",
+    receiver: initialData?.receiver || "",
+    message: initialData?.message || "",
+    trackId: initialData?.track_id || ""
   })
   const [selectedTrack, setSelectedTrack] = useState<Track | null>(null)
   const supabase = createBrowserClient(
@@ -51,9 +59,6 @@ export function SongfestForm({ onSuccess }: SongfestFormProps) {
     const getSession = async () => {
       const { data: { session } } = await supabase.auth.getSession()
       setSession(session)
-      if (session?.user) {
-        setFormData(prev => ({ ...prev, sender: session.user.email || "" }))
-      }
     }
     
     getSession()
@@ -61,9 +66,6 @@ export function SongfestForm({ onSuccess }: SongfestFormProps) {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
-      if (session?.user) {
-        setFormData(prev => ({ ...prev, sender: session.user.email || "" }))
-      }
     })
 
     return () => {
@@ -78,8 +80,8 @@ export function SongfestForm({ onSuccess }: SongfestFormProps) {
     try {
       setLoading(true)
       
-      const response = await fetch("/api/songfest", {
-        method: "POST",
+      const response = await fetch(`/api/songfest${initialData ? `/${initialData.id}` : ''}`, {
+        method: mode === 'create' ? "POST" : "PATCH",
         headers: {
           "Content-Type": "application/json",
         },
@@ -94,7 +96,7 @@ export function SongfestForm({ onSuccess }: SongfestFormProps) {
 
       // Reset form after successful submission
       setFormData({
-        sender: session?.user?.email || "",
+        sender: "",
         receiver: "",
         message: "",
         trackId: ""
@@ -121,12 +123,9 @@ export function SongfestForm({ onSuccess }: SongfestFormProps) {
   if (!session) return null
 
   return (
-    <form onSubmit={handleSubmit} className="w-full max-w-lg mx-auto space-y-6">
+    <form onSubmit={handleSubmit} className="w-full space-y-6">
       <Card>
-        <CardHeader>
-          <h2 className="text-2xl font-semibold text-center">Kirim Songfest</h2>
-        </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 pt-4">
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="sender" className="text-sm font-medium">
@@ -135,8 +134,9 @@ export function SongfestForm({ onSuccess }: SongfestFormProps) {
               <Input
                 id="sender"
                 value={formData.sender}
-                disabled
-                className="bg-muted"
+                onChange={(e) => setFormData(prev => ({ ...prev, sender: e.target.value }))}
+                placeholder="Nama pengirim"
+                required
               />
             </div>
             <div className="space-y-2">
@@ -197,7 +197,7 @@ export function SongfestForm({ onSuccess }: SongfestFormProps) {
                 <span>Mengirim...</span>
               </div>
             ) : (
-              "Kirim Songfest"
+              mode === 'create' ? "Kirim Songfest" : "Update Songfest"
             )}
           </Button>
         </CardFooter>

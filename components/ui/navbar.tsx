@@ -40,11 +40,12 @@ function Navbar() {
   }, [supabase.auth])
 
   const NavLinks = () => (
-    <>
-      <Link href="/songfest" className="text-sm font-medium transition-colors hover:text-primary">
-        Songfest
+    
+      <Link href="/songfest" className="text-sm relative font-medium transition-colors hover:text-primary
+      after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 after:transition-all after:-bottom-[1.5px] hover:after:w-full after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white">
+      Songfest
       </Link>
-    </>
+    
   )
 
   return (
