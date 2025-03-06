@@ -28,23 +28,25 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
   const isDevelopment = process.env.NEXT_PUBLIC_APP_ENV === 'development'
   const [debug, setDebug] = useState<string | null>(null)
 
-  // Check authentication status
+  // Check authentication status and subscribe to changes
   useEffect(() => {
-    const checkAuth = async () => {
-      if (isDevelopment) {
-        setAuthStatus({ isAuthenticated: true })
-        return
-      }
-
-      const { data: { session } } = await supabase.auth.getSession()
-      setAuthStatus({
-        isAuthenticated: !!session,
-        provider: session?.user?.app_metadata?.provider
-      })
+    if (isDevelopment) {
+      setAuthStatus({ isAuthenticated: true });
+      return;
     }
 
-    checkAuth()
-  }, [supabase, isDevelopment])
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setAuthStatus({
+        isAuthenticated: !!session,
+        provider: session?.user?.app_metadata?.provider,
+      });
+    });
+
+    // Clean up subscription on unmount
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, [supabase, isDevelopment]);
 
   // Search when query changes
   useEffect(() => {
