@@ -56,10 +56,11 @@ export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
       return
     }
 
-    if (authStatus.provider && authStatus.provider !== 'spotify' && !isDevelopment) {
-      setError("Please login with Spotify to search tracks")
-      return
-    }
+    // Remove Spotify provider check
+    // if (authStatus.provider && authStatus.provider !== 'spotify' && !isDevelopment) {
+    //   setError("Please login with Spotify to search tracks")
+    //   return
+    // }
 
     const searchTracks = async () => {
       setLoading(true)
