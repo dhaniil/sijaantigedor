@@ -1,16 +1,15 @@
-import { type NextRequest } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
 
 async function getSupabaseClient() {
   const cookieStore = await cookies()
   return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     {
       cookies: {
-        get(name: string) {
+        get(name) {
           return cookieStore.get(name)?.value
         },
       },
@@ -18,10 +17,7 @@ async function getSupabaseClient() {
   )
 }
 
-export async function PATCH(
-  req: NextRequest,
-  { params }: { params: { id: string } }
-): Promise<NextResponse> {
+export async function PATCH(req, { params }) {
   try {
     const supabase = await getSupabaseClient()
     const { data: { session } } = await supabase.auth.getSession()
@@ -78,11 +74,8 @@ export async function PATCH(
   }
 }
 
-// Add GET function for completeness (Vercel might expect this)
-export async function GET(
-  req: NextRequest,
-  context: { params: { id: string } }
-): Promise<NextResponse> {
+// Fixed GET function with correct type definitions
+export async function GET(req, { params }) {
   try {
     const supabase = await getSupabaseClient()
     const { data: { session } } = await supabase.auth.getSession()
@@ -97,7 +90,7 @@ export async function GET(
     const { data, error } = await supabase
       .from('songfests')
       .select('*')
-      .eq('id', context.params.id)
+      .eq('id', params.id)
       .single()
 
     if (error || !data) {
