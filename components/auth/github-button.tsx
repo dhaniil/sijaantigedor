@@ -29,11 +29,16 @@ export default function GitHubButton() {
 
       if (error) {
         console.error("GitHub login error:", error.message)
+        // Show error in UI or alert user
+        alert(`Login failed: ${error.message}`)
         throw error
       }
     } catch (error) {
-      console.error("Error:", error)
+      console.error("GitHub auth error:", error)
+      // Reset loading state
       setIsLoading(false)
+      // Show error to user
+      alert('Failed to login with GitHub. Please try again.')
     }
   }
 

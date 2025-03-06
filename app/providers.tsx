@@ -49,9 +49,8 @@ export function Providers({
         defaultTheme={defaultTheme}
         enableSystem={enableSystem}
         disableTransitionOnChange={disableTransitionOnChange}
-      >
+      />
         {children}
-      </NextThemesProvider>
     </AuthContext.Provider>
   )
 }

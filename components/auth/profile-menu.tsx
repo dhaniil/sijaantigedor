@@ -37,8 +37,18 @@ export default function ProfileMenu({ user }: ProfileMenuProps) {
   )
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    router.refresh()
+    try {
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Logout error:', error)
+      }
+      // Clear local storage and reload to ensure clean state
+      localStorage.clear()
+      router.refresh()
+      router.push('/')
+    } catch (error) {
+      console.error('Logout error:', error)
+    }
   }
 
   const avatarUrl = user.user_metadata.avatar_url

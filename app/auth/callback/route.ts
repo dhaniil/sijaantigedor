@@ -36,8 +36,8 @@ export async function GET(request: Request) {
     }
 
     if (!data.session?.provider_token) {
-      console.warn('No provider token in session')
-      // Removed redirect to error page
+      console.error('No provider token in session')
+      return NextResponse.redirect(`${origin}/auth/auth-code-error?error=${encodeURIComponent('Failed to get provider access token')}`)
     }
 
     return NextResponse.redirect(`${origin}${next}`)
