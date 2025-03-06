@@ -81,7 +81,7 @@ export async function PATCH(
 // Add GET function for completeness (Vercel might expect this)
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ): Promise<NextResponse> {
   try {
     const supabase = await getSupabaseClient()
@@ -97,7 +97,7 @@ export async function GET(
     const { data, error } = await supabase
       .from('songfests')
       .select('*')
-      .eq('id', params.id)
+      .eq('id', context.params.id)
       .single()
 
     if (error || !data) {
