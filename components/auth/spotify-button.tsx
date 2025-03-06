@@ -25,7 +25,7 @@ export default function SpotifyButton({ redirectPath }: SpotifyButtonProps) {
         provider: "spotify",
         options: {
           redirectTo,
-          scopes: "user-read-email user-read-private user-library-read user-library-modify playlist-read-private playlist-modify-public playlist-modify-private",
+          scopes: "user-read-email user-read-private user-library-read",
           queryParams: {
             code_challenge_method: 'S256',
           }
