@@ -19,9 +19,10 @@ async function getSupabaseClient() {
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  context: { params: { id: string } }
 ) {
   try {
+    const { id } = context.params
     const supabase = await getSupabaseClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -38,7 +39,7 @@ export async function PATCH(
     const { data: songfest } = await supabase
       .from('songfests')
       .select('user_id')
-      .eq('id', params.id)
+      .eq('id', id)
       .single()
 
     if (!songfest || songfest.user_id !== session.user.id) {
@@ -56,7 +57,7 @@ export async function PATCH(
         message: body.message,
         track_id: body.trackId
       })
-      .eq('id', params.id)
+      .eq('id', id)
       .eq('user_id', session.user.id)
 
     if (error) {
