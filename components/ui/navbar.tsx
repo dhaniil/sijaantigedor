@@ -4,7 +4,7 @@ import Link from "next/link"
 import { ThemeSwitcher } from "@/components/theme-switcher"
 import LoginModal from "@/components/auth/login-modal"
 import ProfileMenu from "@/components/auth/profile-menu"
-import { createBrowserClient } from '@supabase/ssr'  // Changed import
+import { createBrowserClient } from '@supabase/ssr'
 import { useEffect, useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
@@ -16,7 +16,7 @@ function Navbar() {
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )  // Changed client initialization
+  )
 
   useEffect(() => {
     const handleScroll = () => {
@@ -40,12 +40,15 @@ function Navbar() {
   }, [supabase.auth])
 
   const NavLinks = () => (
-    
-      <Link href="/songfest" className="text-sm relative font-medium transition-colors hover:text-primary
-      after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 after:transition-all after:-bottom-[1.5px] hover:after:w-full after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white">
+    <Link 
+      href="/songfest" 
+      className="text-sm relative font-medium transition-colors hover:text-primary
+        after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
+        after:transition-all after:-bottom-[1.5px] hover:after:w-full 
+        after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white"
+    >
       Songfest
-      </Link>
-    
+    </Link>
   )
 
   return (
@@ -54,17 +57,16 @@ function Navbar() {
         <div className="flex flex-col">
           <div className="flex items-center h-16 justify-between">
             <div className="flex items-center">
-              <div className="w-48">
+              <div className="w-48 flex items-center gap-6">
                 <Link href="/" className="text-xl font-bold">
                   12 SIJA Antigedor
                 </Link>
-              </div>
-
-              {/* Desktop Menu */}
-              <div className={`hidden md:flex items-center ml-6 space-x-6 transition-all duration-300 ease-in-out ${
-                !isScrolled ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1 pointer-events-none'
-              }`}>
-                <NavLinks />
+                {/* Desktop Menu - Show beside logo when scrolled */}
+                <div className={`hidden md:flex items-center space-x-6 transition-all duration-300 ease-in-out ${
+                  isScrolled ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'
+                }`}>
+                  <NavLinks />
+                </div>
               </div>
             </div>
 
@@ -89,10 +91,10 @@ function Navbar() {
             </div>
           </div>
 
-          {/* Desktop Scrolled Menu */}
+          {/* Desktop Menu - Show below when not scrolled */}
           <div 
             className={`hidden md:flex items-start transition-all duration-300 ease-in-out border-t border-border/50 ${
-              isScrolled ? 'h-12 opacity-100 translate-y-0' : 'h-0 opacity-0 -translate-y-1 pointer-events-none overflow-hidden'
+              !isScrolled ? 'h-12 opacity-100 translate-y-0' : 'h-0 opacity-0 -translate-y-1 pointer-events-none overflow-hidden'
             }`}
           >
             <div className="flex space-x-6 ml-0 mt-3">
