@@ -57,9 +57,9 @@ function Navbar() {
         <div className="flex flex-col">
           <div className="flex items-center h-16 justify-between">
             <div className="flex items-center">
-              <div className="w-48 flex items-center gap-6">
+              <div className="w-auto flex items-center gap-4">
                 <Link href="/" className="text-xl font-bold">
-                  12 SIJA Antigedor
+                  12 SIJA A
                 </Link>
                 {/* Desktop Menu - Show beside logo when scrolled */}
                 <div className={`hidden md:flex items-center space-x-6 transition-all duration-300 ease-in-out ${

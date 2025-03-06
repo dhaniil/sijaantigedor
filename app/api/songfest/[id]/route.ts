@@ -1,3 +1,4 @@
+import { type NextRequest } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
@@ -18,11 +19,10 @@ async function getSupabaseClient() {
 }
 
 export async function PATCH(
-  request: Request,
-  context: { params: { id: string } }
-) {
+  req: NextRequest,
+  { params }: { params: { id: string } }
+): Promise<NextResponse> {
   try {
-    const { id } = context.params
     const supabase = await getSupabaseClient()
     const { data: { session } } = await supabase.auth.getSession()
 
@@ -33,13 +33,13 @@ export async function PATCH(
       )
     }
 
-    const body = await request.json()
+    const body = await req.json()
 
     // Verify ownership before updating
     const { data: songfest } = await supabase
       .from('songfests')
       .select('user_id')
-      .eq('id', id)
+      .eq('id', params.id)
       .single()
 
     if (!songfest || songfest.user_id !== session.user.id) {
@@ -57,7 +57,7 @@ export async function PATCH(
         message: body.message,
         track_id: body.trackId
       })
-      .eq('id', id)
+      .eq('id', params.id)
       .eq('user_id', session.user.id)
 
     if (error) {
