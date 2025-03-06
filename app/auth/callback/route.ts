@@ -36,20 +36,8 @@ export async function GET(request: Request) {
     }
 
     if (!data.session?.provider_token) {
-      console.error('No provider token in session')
-      return NextResponse.redirect(`${origin}/auth/auth-code-error?error=missing_provider_token`)
-    }
-
-    // Test the token immediately to ensure it works
-    const testResponse = await fetch('https://api.spotify.com/v1/me', {
-      headers: { 
-        Authorization: `Bearer ${data.session.provider_token}`
-      }
-    })
-
-    if (!testResponse.ok) {
-      console.error('Token validation failed:', await testResponse.text())
-      return NextResponse.redirect(`${origin}/auth/auth-code-error?error=token_validation_failed`)
+      console.warn('No provider token in session')
+      // Removed redirect to error page
     }
 
     return NextResponse.redirect(`${origin}${next}`)
