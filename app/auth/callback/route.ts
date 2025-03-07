@@ -1,111 +1,66 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 
-export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
-  const code = searchParams.get('code')
-  const error = searchParams.get('error')
-  const error_description = searchParams.get('error_description')
-  const next = searchParams.get('next') ?? '/'
-
-  console.log('Auth callback received:', {
-    code: code ? 'present' : 'missing',
-    error,
-    error_description,
-    next,
-    origin,
-    allParams: Object.fromEntries(searchParams.entries())
+export async function GET(request: NextRequest) {
+  const requestUrl = new URL(request.url)
+  const cookieStore = cookies()
+  
+  let response = NextResponse.next({
+    request,
   })
 
-  // Handle OAuth provider errors
-  if (error) {
-    console.error('OAuth provider error:', {
-      error,
-      description: error_description
-    })
-    return NextResponse.redirect(
-      `${origin}/auth/auth-code-error?error=${encodeURIComponent(error_description || error)}`
-    )
-  }
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
+          return response
+        },
+      },
+    }
+  )
+
+  const code = requestUrl.searchParams.get('code')
 
   if (code) {
-    const cookieStore = await cookies()
-
-    const supabase = createServerClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-      {
-        cookies: {
-          get(name: string) {
-            return cookieStore.get(name)?.value
-          },
-          set(name: string, value: string, options: CookieOptions) {
-            cookieStore.set({ name, value, ...options })
-          },
-          remove(name: string, options: CookieOptions) {
-            cookieStore.set({ name, value: '', ...options })
-          },
-        },
-      }
-    )
-
     try {
-      const { data, error } = await supabase.auth.exchangeCodeForSession(code)
+      const { data: { session }, error: exchangeError } = 
+        await supabase.auth.exchangeCodeForSession(code)
       
-      if (error) {
-        console.error('Auth exchange error:', {
-          message: error.message,
-          status: error.status,
-          name: error.name,
-          stack: error.stack
-        })
+      if (exchangeError || !session) {
+        console.error('Exchange error:', exchangeError)
         return NextResponse.redirect(
-          `${origin}/auth/auth-code-error?error=${encodeURIComponent(
-            'Gagal menukar kode autentikasi: ' + error.message
-          )}`
+          new URL('/sign-in?error=Exchange+failed', requestUrl.origin)
         )
       }
 
-      if (!data.session) {
-        console.error('No session data received')
-        return NextResponse.redirect(
-          `${origin}/auth/auth-code-error?error=${encodeURIComponent(
-            'Gagal membuat sesi: Tidak ada data sesi diterima'
-          )}`
-        )
-      }
+      // Return response with cookies
+      const redirectResponse = NextResponse.redirect(
+        new URL('/protected', requestUrl.origin)
+      )
 
-      console.log('Session data received:', {
-        hasProviderToken: !!data.session.provider_token,
-        provider: data.session.user?.app_metadata?.provider,
-        userId: data.session.user?.id,
-        email: data.session.user?.email
+      // Copy all cookies from response to redirectResponse
+      response.cookies.getAll().forEach(cookie => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie.options)
       })
 
-      if (!data.session?.provider_token) {
-        console.error('No provider token in session')
-        return NextResponse.redirect(
-          `${origin}/auth/auth-code-error?error=${encodeURIComponent(
-            'Gagal mendapatkan token akses Spotify. Pastikan Anda mengizinkan akses yang diperlukan.'
-          )}`
-        )
-      }
+      return redirectResponse
 
-      return NextResponse.redirect(`${origin}${next}`)
-    } catch (e) {
-      console.error('Unexpected error during auth exchange:', e)
+    } catch (error) {
+      console.error('Error:', error)
       return NextResponse.redirect(
-        `${origin}/auth/auth-code-error?error=${encodeURIComponent(
-          'Terjadi kesalahan yang tidak terduga saat proses autentikasi'
-        )}`
+        new URL('/sign-in?error=Authentication+failed', requestUrl.origin)
       )
     }
   }
 
-  return NextResponse.redirect(
-    `${origin}/auth/auth-code-error?error=${encodeURIComponent(
-      'Tidak ada kode autentikasi diterima dari Spotify'
-    )}`
-  )
+  return NextResponse.redirect(new URL('/sign-in', requestUrl.origin))
 }

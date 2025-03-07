@@ -1,54 +1,49 @@
-import { createServerClient, type CookieOptions } from '@supabase/ssr'
+import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
-  const response = NextResponse.next()
-
-  // Cek apakah request ke halaman yang membutuhkan auth
-  const isAuthPage = request.nextUrl.pathname.startsWith('/protected')
-  const isCreateSongfestPage = request.nextUrl.pathname.startsWith('/songfest/create')
-
-  if (!isAuthPage && !isCreateSongfestPage) {
-    return response
-  }
+  let response = NextResponse.next({
+    request,
+  })
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookies: {
-        get(name: string) {
-          return request.cookies.get(name)?.value
+        getAll() {
+          return request.cookies.getAll()
         },
-        set(name: string, value: string, options: CookieOptions) {
-          response.cookies.set({ name, value, ...options })
-        },
-        remove(name: string, options: CookieOptions) {
-          response.cookies.set({ name, value: '', ...options })
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value, options }) => {
+            response.cookies.set(name, value, options)
+          })
         },
       },
     }
   )
 
-  const { data: { session } } = await supabase.auth.getSession()
+  // Always verify user with getUser()
+  const { data: { user }, error } = await supabase.auth.getUser()
 
-  if (!session && (isAuthPage || isCreateSongfestPage)) {
-    return NextResponse.redirect(new URL('/login', request.url))
+  // Public routes
+  const isPublicRoute = request.nextUrl.pathname.startsWith('/sign-in') || 
+                       request.nextUrl.pathname.startsWith('/auth') ||
+                       request.nextUrl.pathname === '/'
+
+  if (!user && !isPublicRoute) {
+    const redirectUrl = new URL('/sign-in', request.url)
+    return NextResponse.redirect(redirectUrl)
+  }
+
+  if (user && request.nextUrl.pathname.startsWith('/sign-in')) {
+    const redirectUrl = new URL('/protected', request.url)
+    return NextResponse.redirect(redirectUrl)
   }
 
   return response
 }
 
 export const config = {
-  matcher: [
-    /*
-     * Match all request paths except for the ones starting with:
-     * - api (API routes)
-     * - _next/static (static files)
-     * - _next/image (image optimization files)
-     * - favicon.ico (favicon file)
-     * - public (public files)
-     */
-    '/((?!_next/static|_next/image|favicon.ico|public|songfest).*)',
-  ],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }
