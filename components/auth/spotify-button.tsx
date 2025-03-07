@@ -20,6 +20,13 @@ export default function SpotifyButton({ redirectPath }: SpotifyButtonProps) {
       setIsLoading(true)
       
       const redirectTo = `${window.location.origin}/auth/callback?next=${redirectPath || window.location.pathname}`
+      
+      console.log('Initiating Spotify OAuth:', {
+        redirectTo,
+        origin: window.location.origin,
+        redirectPath,
+        pathname: window.location.pathname
+      })
 
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "spotify",
@@ -33,7 +40,11 @@ export default function SpotifyButton({ redirectPath }: SpotifyButtonProps) {
       })
 
       if (error) {
-        console.error("Login error:", error.message)
+        console.error("Spotify OAuth initiation error:", {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        })
         throw error
       }
     } catch (error) {
