@@ -3,12 +3,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { Button } from "@/components/ui/button"
 import LoginModal from "@/components/auth/login-modal"
 
-export default async function AuthCodeError({
-  searchParams,
-}: {
-  searchParams: { error?: string }
-}) {
-  const errorMessage = searchParams.error
+export default function AuthCodeError({ searchParams }) {
+  const errorMessage = typeof searchParams?.error === 'string' ? searchParams.error : undefined
   console.log('Auth error page loaded with error:', errorMessage)
   return (
     <div className="container mx-auto max-w-lg py-16 px-4">

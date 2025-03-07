@@ -1,117 +1,124 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createServerClient } from '@supabase/ssr'
-import { cookies } from 'next/headers'
+import { createClient } from '@/utils/supabase/server'
 
-async function getSupabaseClient() {
-  const cookieStore = await cookies()
-  return createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-    {
-      cookies: {
-        get(name) {
-          return cookieStore.get(name)?.value
-        },
-      },
-    }
-  )
+export async function GET(request, { params }) {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), { 
+      status: 401,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+
+  const { data, error } = await supabase
+    .from('songfests')
+    .select('*')
+    .eq('id', params.id)
+    .single()
+
+  if (error || !data) {
+    return new Response(JSON.stringify({ error: 'Not found' }), {
+      status: 404,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+
+  return new Response(JSON.stringify(data), {
+    status: 200,
+    headers: { 'content-type': 'application/json' }
+  })
 }
 
-export async function PATCH(req, { params }) {
-  try {
-    const supabase = await getSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
+export async function PATCH(request, { params }) {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
 
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    const body = await req.json();
-
-    // Await params before using it
-    const { id } = await params;
-
-    // Verify ownership before updating
-    const { data: songfest } = await supabase
-      .from('songfests')
-      .select('user_id')
-      .eq('id', id)
-      .single();
-
-    if (!songfest || songfest.user_id !== session.user.id) {
-      return NextResponse.json(
-        { error: 'Not found or unauthorized' },
-        { status: 404 }
-      );
-    }
-
-    const { error } = await supabase
-      .from('songfests')
-      .update({
-        sender: body.sender,
-        receiver: body.receiver,
-        message: body.message,
-        track_id: body.trackId
-      })
-      .eq('id', id)
-      .eq('user_id', session.user.id);
-
-    if (error) {
-      console.error('Error updating songfest:', error);
-      return NextResponse.json(
-        { error: 'Failed to update songfest' },
-        { status: 500 }
-      );
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  if (!session) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'content-type': 'application/json' }
+    })
   }
+
+  const body = await request.json()
+
+  const { data: songfest } = await supabase
+    .from('songfests')
+    .select('user_id')
+    .eq('id', params.id)
+    .single()
+
+  if (!songfest || songfest.user_id !== session.user.id) {
+    return new Response(JSON.stringify({ error: 'Not found or unauthorized' }), {
+      status: 404,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+
+  const { error } = await supabase
+    .from('songfests')
+    .update({
+      sender: body.sender,
+      receiver: body.receiver,
+      message: body.message,
+      track_id: body.trackId
+    })
+    .eq('id', params.id)
+    .eq('user_id', session.user.id)
+
+  if (error) {
+    return new Response(JSON.stringify({ error: 'Failed to update songfest' }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: { 'content-type': 'application/json' }
+  })
 }
 
-// Fixed GET function with correct type definitions
-export async function GET(req, { params }) {
-  try {
-    const supabase = await getSupabaseClient();
-    const { data: { session } } = await supabase.auth.getSession();
+export async function DELETE(request, { params }) {
+  const supabase = await createClient()
+  const { data: { session } } = await supabase.auth.getSession()
 
-    if (!session) {
-      return NextResponse.json(
-        { error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
-
-    // Await params before using it
-    const { id } = await params;
-
-    const { data, error } = await supabase
-      .from('songfests')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (error || !data) {
-      return NextResponse.json(
-        { error: 'Not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(data);
-  } catch (error) {
-    console.error('Unexpected error:', error);
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    );
+  if (!session) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      status: 401,
+      headers: { 'content-type': 'application/json' }
+    })
   }
+
+  const { data: songfest } = await supabase
+    .from('songfests')
+    .select('user_id')
+    .eq('id', params.id)
+    .single()
+
+  if (!songfest || songfest.user_id !== session.user.id) {
+    return new Response(JSON.stringify({ error: 'Not found or unauthorized' }), {
+      status: 404,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+
+  const { error } = await supabase
+    .from('songfests')
+    .delete()
+    .eq('id', params.id)
+    .eq('user_id', session.user.id)
+
+  if (error) {
+    return new Response(JSON.stringify({ error: 'Failed to delete songfest' }), {
+      status: 500,
+      headers: { 'content-type': 'application/json' }
+    })
+  }
+
+  return new Response(JSON.stringify({ success: true }), {
+    status: 200,
+    headers: { 'content-type': 'application/json' }
+  })
 }
