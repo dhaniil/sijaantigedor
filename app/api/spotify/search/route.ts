@@ -11,8 +11,19 @@ export async function GET(request: Request) {
     }
 
     const tracks = await searchTracks(query);
+    
+    // Transform tracks to match UI expectations
+    const transformedTracks = tracks.map(track => ({
+      id: track.id,
+      name: track.name,
+      artists: [{ name: track.artist }], // Convert string to expected array format
+      album: {
+        name: track.album,
+        images: track.album_images || [] // Use album_images array
+      }
+    }));
 
-    return NextResponse.json({ tracks });
+    return NextResponse.json({ tracks: transformedTracks });
 
   } catch (error) {
     console.error("Spotify search error:", error);

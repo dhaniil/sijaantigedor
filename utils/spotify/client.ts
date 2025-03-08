@@ -1,3 +1,5 @@
+import { Track } from "@/types/track";
+
 interface SpotifyTokenResponse {
   access_token: string;
   token_type: string;
@@ -18,150 +20,138 @@ export interface SpotifyTrack {
   artists: { name: string }[];
   album: {
     name: string;
-    images: { url: string; height: number; width: number }[];
+    images: Array<{
+      url: string;
+      height: number;
+      width: number;
+    }>;
   };
   uri: string;
   duration_ms: number;
+  preview_url: string | null;
+  external_urls: {
+    spotify: string;
+  };
 }
 
-// Cache the token to avoid requesting it too frequently
-let tokenCache: {
-  token: string;
-  expiry: number;
-} | null = null;
+let accessToken: string | null = null;
+let tokenExpirationTime: number | null = null;
 
-// Use client credentials flow instead of OAuth
 async function getAccessToken(): Promise<string> {
-  // Return cached token if it's still valid
-  if (tokenCache && tokenCache.expiry > Date.now()) {
-    return tokenCache.token;
+  // Return existing token if it's still valid
+  if (accessToken && tokenExpirationTime && Date.now() < tokenExpirationTime) {
+    return accessToken;
   }
 
-  const clientId = process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
+  const clientId = process.env.SPOTIFY_CLIENT_ID || process.env.NEXT_PUBLIC_SPOTIFY_CLIENT_ID;
   const clientSecret = process.env.SPOTIFY_CLIENT_SECRET;
 
   if (!clientId || !clientSecret) {
     console.error('Missing Spotify credentials');
-    throw new Error('Spotify credentials not configured properly');
+    throw new Error('SPOTIFY_CLIENT_ID and SPOTIFY_CLIENT_SECRET must be set in environment variables');
   }
 
   try {
-    // Get new token using client credentials flow (no OAuth)
-    const authBuffer = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    
+    const authString = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+
     const response = await fetch('https://accounts.spotify.com/api/token', {
       method: 'POST',
       headers: {
-        'Authorization': `Basic ${authBuffer}`,
         'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${authString}`,
       },
       body: new URLSearchParams({
         grant_type: 'client_credentials',
       }),
     });
-    
+
     if (!response.ok) {
-      throw new Error(`Failed to get Spotify access token: ${response.status}`);
+      throw new Error(`Failed to get Spotify token: ${response.status} ${response.statusText}`);
     }
 
-    const data: SpotifyTokenResponse = await response.json();
-    
-    // Cache the token
-    tokenCache = {
-      token: data.access_token,
-      expiry: Date.now() + (data.expires_in * 1000 * 0.9), // 90% of expiry time for safety margin
-    };
-    
-    return data.access_token;
+    const data = await response.json();
+    accessToken = data.access_token;
+    tokenExpirationTime = Date.now() + (data.expires_in - 300) * 1000;
+
+    if (!accessToken) throw new Error('Failed to obtain access token');
+    return accessToken;
   } catch (error) {
     console.error('Error getting Spotify access token:', error);
+    throw new Error(`Failed to authenticate with Spotify: ${error instanceof Error ? error.message : 'Unknown error'}`);
+  }
+}
+
+export async function searchTracks(query: string): Promise<Track[]> {
+  try {
+    const token = await getAccessToken();
+    const response = await fetch(
+      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(`Spotify API error: ${response.statusText}`);
+    }
+
+    const data: SpotifySearchResponse = await response.json();
+
+    return data.tracks.items.map((track: SpotifyTrack) => {
+      const images = track.album?.images || [];
+      const mappedTrack: Track = {
+        id: track.id,
+        name: track.name,
+        artist: track.artists[0]?.name || 'Unknown Artist',
+        album: track.album?.name || 'Unknown Album',
+        albumArt: images[0]?.url || images[1]?.url || undefined,
+        album_images: images,
+        duration: track.duration_ms,
+        previewUrl: track.preview_url,
+        externalUrl: track.external_urls?.spotify || `https://open.spotify.com/track/${track.id}`
+      };
+      return mappedTrack;
+    });
+  } catch (error) {
+    console.error('Error searching tracks:', error);
     throw error;
   }
 }
 
-export async function searchTracks(query: string, limit = 10): Promise<SpotifyTrack[]> {
-  if (!query) return [];
-  
+export async function getTrackById(id: string): Promise<Track | null> {
   try {
     const token = await getAccessToken();
-    
     const response = await fetch(
-      `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=${limit}`,
+      `https://api.spotify.com/v1/tracks/${id}`,
       {
         headers: {
-          'Authorization': `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
       }
     );
-    
-    if (!response.ok) {
-      throw new Error(`Pencarian Spotify gagal: ${response.status}`);
-    }
-    
-    const data: SpotifySearchResponse = await response.json();
-    
-    if (!data || !data.tracks || !Array.isArray(data.tracks.items)) {
-      return [];
-    }
-    
-    return data.tracks.items.map(item => ({
-      id: item.id || '',
-      name: item.name || '',
-      artists: Array.isArray(item.artists) ? item.artists.map(artist => ({
-        name: artist.name || ''
-      })) : [],
-      album: {
-        name: item.album?.name || '',
-        images: Array.isArray(item.album?.images) ? item.album.images.map(img => ({
-          url: img.url || '',
-          height: img.height || 0,
-          width: img.width || 0
-        })) : []
-      },
-      uri: item.uri || '',
-      duration_ms: item.duration_ms || 0
-    }));
-  } catch (error) {
-    console.error('Error pencarian track Spotify:', error);
-    return [];
-  }
-}
 
-// Function to get track details by ID
-export async function getTrackById(trackId: string): Promise<SpotifyTrack | null> {
-  if (!trackId) return null;
-  
-  try {
-    const token = await getAccessToken();
-    
-    const response = await fetch(
-      `https://api.spotify.com/v1/tracks/${trackId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      }
-    );
-    
     if (!response.ok) {
-      throw new Error(`Failed to get track: ${response.status}`);
+      throw new Error(`Spotify API error: ${response.statusText}`);
     }
-    
-    const data = await response.json();
-    
+
+    const track: SpotifyTrack = await response.json();
+
+    const images = track.album?.images || [];
     return {
-      id: data.id,
-      name: data.name,
-      artists: data.artists.map((artist: any) => ({ name: artist.name })),
-      album: {
-        name: data.album.name,
-        images: data.album.images
-      },
-      uri: data.uri,
-      duration_ms: data.duration_ms
+      id: track.id,
+      name: track.name,
+      artist: track.artists[0]?.name || 'Unknown Artist',
+      album: track.album?.name || 'Unknown Album',
+      albumArt: images[0]?.url || images[1]?.url || undefined,
+      album_images: images,
+      duration: track.duration_ms,
+      previewUrl: track.preview_url,
+      externalUrl: track.external_urls?.spotify || `https://open.spotify.com/track/${track.id}`
     };
   } catch (error) {
-    console.error('Error getting track from Spotify:', error);
+    console.error('Error fetching track:', error);
     return null;
   }
 }

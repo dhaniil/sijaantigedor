@@ -43,7 +43,8 @@ export default function RootLayout({
       <head>
         {/* Preconnect to Spotify domains for faster initial connection */}
         <link rel="preconnect" href="https://open.spotify.com" />
-        <link rel="preconnect" href="https://i.scdn.co" />
+        <link rel="preconnect" href="https://i.scdn.co" crossOrigin="anonymous" />
+        <link rel="preconnect" href="https://image-cdn-ak.spotifycdn.com" crossOrigin="anonymous" />
       </head>
       <body>
         <Providers

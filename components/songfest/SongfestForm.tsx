@@ -10,11 +10,13 @@ import { SpotifySearch } from "./SpotifySearch"
 import { Session } from "@supabase/supabase-js"
 import { useRouter } from "next/navigation"
 
+// Fix the import to use the correct type
 interface Track {
   id: string
   name: string
   artists: Array<{ name: string }>
   album: {
+    name: string
     images: Array<{ url: string }>
   }
 }
@@ -175,15 +177,32 @@ export function SongfestForm({ onSuccess, initialData, mode = 'create' }: Songfe
 
           {selectedTrack && (
             <div className="flex items-center gap-3 p-2 bg-muted rounded-md">
-              <img
-                src={selectedTrack.album.images[2]?.url}
-                alt={selectedTrack.name}
-                className="w-10 h-10 rounded"
-              />
+              <div className="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0 bg-gray-200">
+                {selectedTrack.album?.images && selectedTrack.album.images.length > 0 ? (
+                  <img
+                    src={selectedTrack.album.images[0].url}
+                    alt={selectedTrack.name}
+                    className="w-full h-full object-cover"
+                    loading="eager" 
+                    referrerPolicy="no-referrer"
+                    onError={(e) => {
+                      // Try with no-cors as fallback
+                      fetch(selectedTrack.album.images[0].url, { mode: 'no-cors' })
+                        .catch(() => {/* Silently handle error */});
+                    }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-xs text-gray-500">
+                    No Image
+                  </div>
+                )}
+              </div>
               <div>
                 <p className="text-sm font-medium">{selectedTrack.name}</p>
                 <p className="text-xs text-muted-foreground">
-                  {selectedTrack.artists.map(a => a.name).join(", ")}
+                  {Array.isArray(selectedTrack.artists) && selectedTrack.artists.length > 0 
+                    ? selectedTrack.artists.map(a => a.name).join(", ")
+                    : "Unknown Artist"}
                 </p>
               </div>
             </div>
