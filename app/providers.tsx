@@ -2,14 +2,14 @@
 
 import { createContext, useContext, useEffect, useState } from "react"
 import { createBrowserClient } from '@supabase/ssr'
-import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { ThemeProvider } from "@/context/theme-context"
 
 export const AuthContext = createContext<{ user: any | null }>({ user: null })
 
 interface ProvidersProps {
   children: React.ReactNode
-  defaultTheme?: string | undefined
-  attribute?: "class" | "data-theme" | undefined
+  defaultTheme?: "light" | "dark" | "system"
+  attribute?: string
   enableSystem?: boolean
   disableTransitionOnChange?: boolean
 }
@@ -17,7 +17,8 @@ interface ProvidersProps {
 export function Providers({ 
   children,
   defaultTheme = "system",
-  attribute = "class",
+  // These props are kept for compatibility but not used in our custom implementation
+  attribute,
   enableSystem = true,
   disableTransitionOnChange = true
 }: ProvidersProps) {
@@ -40,17 +41,13 @@ export function Providers({
   }, [supabase.auth])
 
   // Prevent flash of unstyled content
-  if (!mounted) return null
+  if (!mounted) return <>{children}</>;
 
   return (
     <AuthContext.Provider value={{ user }}>
-      <NextThemesProvider 
-        attribute={attribute}
-        defaultTheme={defaultTheme}
-        enableSystem={enableSystem}
-        disableTransitionOnChange={disableTransitionOnChange}
-      />
+      <ThemeProvider defaultTheme={defaultTheme} storageKey="sija-theme-preference">
         {children}
+      </ThemeProvider>
     </AuthContext.Provider>
   )
 }

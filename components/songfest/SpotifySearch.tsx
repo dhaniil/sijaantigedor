@@ -1,182 +1,117 @@
-"use client"
+'use client';
 
-import { useState, useEffect } from "react"
-import { Input } from "@/components/ui/input"
-import { useDebounce } from "@/hooks/use-debounce"
-import { createBrowserClient } from '@supabase/ssr'
-import { SpotifyTrackCard } from "./SpotifyTrackCard"
-import { type SpotifyTrack } from "@/types/spotify"
+import { useState, useEffect } from 'react';
+import { useDebounce } from 'use-debounce';
+import { SpotifyTrack } from '@/utils/spotify/client';
 
 interface SpotifySearchProps {
-  onTrackSelect: (track: SpotifyTrack) => void
+  onTrackSelect: (track: SpotifyTrack) => void;
 }
 
 export function SpotifySearch({ onTrackSelect }: SpotifySearchProps) {
-  const [query, setQuery] = useState("")
-  const [results, setResults] = useState<SpotifyTrack[]>([])
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const debouncedQuery = useDebounce(query, 500)
-  const [authStatus, setAuthStatus] = useState<{
-    isAuthenticated: boolean;
-    provider?: string | null;
-  }>({ isAuthenticated: false })
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
-  const isDevelopment = process.env.NEXT_PUBLIC_APP_ENV === 'development'
-  const [debug, setDebug] = useState<string | null>(null)
-
-  // Check authentication status and subscribe to changes
-  useEffect(() => {
-    if (isDevelopment) {
-      setAuthStatus({ isAuthenticated: true });
-      return;
-    }
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setAuthStatus({
-        isAuthenticated: !!session,
-        provider: session?.user?.app_metadata?.provider,
-      });
-    });
-
-    // Clean up subscription on unmount
-    return () => {
-      subscription?.unsubscribe();
-    };
-  }, [supabase, isDevelopment]);
+  const [query, setQuery] = useState('');
+  const [debouncedQuery] = useDebounce(query, 500);
+  const [results, setResults] = useState<SpotifyTrack[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Untuk pengembangan
+  const isDevelopment = process.env.NODE_ENV === 'development';
 
   // Search when query changes
   useEffect(() => {
-    if (!debouncedQuery || debouncedQuery.length < 2) return
-    if (!authStatus.isAuthenticated && !isDevelopment) {
-      setError("Please login first to search tracks")
-      return
-    }
-
-    // Remove Spotify provider check
-    // if (authStatus.provider && authStatus.provider !== 'spotify' && !isDevelopment) {
-    //   setError("Please login with Spotify to search tracks")
-    //   return
-    // }
+    if (!debouncedQuery || debouncedQuery.length < 2) return;
 
     const searchTracks = async () => {
-      setLoading(true)
-      setError(null)
-      setDebug(null)
+      setLoading(true);
+      setError(null);
 
       try {
-        console.log(`Searching for "${debouncedQuery}"...`);
-        const startTime = Date.now();
+        const response = await fetch(`/api/spotify/search?q=${encodeURIComponent(debouncedQuery)}`);
         
-        const response = await fetch(
-          `/api/spotify/search?q=${encodeURIComponent(debouncedQuery)}&type=track&limit=5`
-        );
-        
-        const endTime = Date.now();
-        const responseTime = endTime - startTime;
-        setDebug(`Status: ${response.status}, Time: ${responseTime}ms`);
-
-        if (!response.ok) {
-          const errorData = await response.json().catch(() => ({}));
-          throw new Error(errorData.error || `Error ${response.status}: ${response.statusText}`);
-        }
-
         let data;
         try {
           data = await response.json();
         } catch (parseError) {
-          console.error("Failed to parse JSON response:", parseError);
-          throw new Error("Invalid response format");
+          console.error('JSON parsing error:', parseError);
+          setError('Failed to parse server response');
+          setLoading(false);
+          return;
         }
         
-        if (data && data.items && Array.isArray(data.items)) {
-          setResults(data.items);
-          if (data.items.length === 0) {
-            setDebug(prev => `${prev || ''} | No results found`);
-          }
+        if (!response.ok) {
+          setError(data.error || 'Search failed');
+          setResults([]);
+        } else if (data.results && Array.isArray(data.results)) {
+          setResults(data.results);
+          setError(null);
+        } else if (data.tracks && Array.isArray(data.tracks)) {
+          setResults(data.tracks);
+          setError(null);
         } else {
           console.error("Unexpected response format:", data);
-          setDebug(prev => `${prev || ''} | Invalid response: ${JSON.stringify(data).slice(0, 100)}...`);
           setError("Received invalid data format from server");
           setResults([]);
         }
-      } catch (err) {
+      } catch (err: any) {
         console.error("Search error:", err);
-        setError(err instanceof Error ? err.message : "Failed to search tracks");
+        setError(err.message || 'Search failed');
         setResults([]);
       } finally {
         setLoading(false);
       }
-    }
+    };
 
     searchTracks();
-  }, [debouncedQuery, authStatus.isAuthenticated, isDevelopment, authStatus.provider]);
+  }, [debouncedQuery]);
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Input
-          placeholder="Cari lagu di Spotify..."
+    <div className="spotify-search">
+      <div className="search-input">
+        <input
+          type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          disabled={loading || (!authStatus.isAuthenticated && !isDevelopment)}
-          className="w-full"
+          placeholder="Cari lagu..."
+          className="w-full p-2 border rounded-md bg-white dark:bg-black"
         />
-        {error && (
-        <div className="text-xs p-2 bg-red-50 dark:bg-red-900/20 rounded space-y-1">
-          <p className="text-red-500">{error}</p>
-          {error?.includes('Please login with Spotify') && (
-            <button 
-              onClick={() => window.location.href = '/auth/login'} 
-              className="text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
-            >
-              Click here to login with Spotify →
-            </button>
-          )}
-          {isDevelopment && debug && (
-            <div className="text-xs opacity-75">
-              <code>{debug}</code>
-            </div>
-          )}
-        </div>
-        )}
       </div>
-
-      {loading && (
-        <div className="text-center p-4">
-          <div className="inline-block h-6 w-6 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
-          <p className="mt-2 text-sm text-muted-foreground">Mencari "{debouncedQuery}"...</p>
-        </div>
-      )}
-
-      {/* Display results only when we have them and not loading */}
-      {!loading && results.length > 0 && (
-        <div className="space-y-2 max-h-[calc(100vh-20rem)] overflow-auto border rounded-md p-2">
-          {results.map((track) => (
-            <SpotifyTrackCard
-              key={track.id}
-              track={track}
-              onClick={() => onTrackSelect(track)}
-            />
-          ))}
-        </div>
-      )}
-
-      {!loading && debouncedQuery && results.length === 0 && !error && debouncedQuery.length >= 2 && (
-        <div className="text-sm text-center text-muted-foreground p-4 bg-muted rounded-md">
-          <p>Tidak ada hasil untuk "{debouncedQuery}"</p>
-          {isDevelopment && debug && <div className="text-xs mt-2 opacity-75">{debug}</div>}
-        </div>
-      )}
       
-      {debouncedQuery && debouncedQuery.length < 2 && !loading && !error && (
-        <p className="text-xs text-center text-muted-foreground">
-          Ketikkan minimal 2 karakter untuk memulai pencarian
-        </p>
-      )}
+      {loading && <div className="mt-4">Loading...</div>}
+      {error && <div className="mt-2 text-red-500">{error}</div>}
+      
+      <div className="mt-4 relative">
+        <ul className="space-y-2 max-h-60 md:max-h-96 overflow-y-auto pr-1 custom-scrollbar">
+          {results.map((track) => (
+            <li
+              key={track.id}
+              onClick={() => onTrackSelect(track)}
+              className="flex gap-3 p-2 rounded-md hover:bg-gray-100 cursor-pointer"
+            >
+              {track.album?.images?.[0]?.url ? (
+                <img
+                  src={track.album.images[0].url}
+                  alt="Album art"
+                  className="w-12 h-12 object-cover rounded"
+                />
+              ) : (
+                <div className="w-12 h-12 bg-gray-200 flex items-center justify-center rounded">
+                  <span className="text-gray-400">No Image</span>
+                </div>
+              )}
+              <div>
+                <div className="font-medium">{track.name}</div>
+                <div className="text-sm text-gray-600">
+                  {track.artists?.map(artist => artist.name).join(", ")}
+                </div>
+              </div>
+            </li>
+          ))}
+          {!loading && results.length === 0 && debouncedQuery && (
+            <li className="text-center text-gray-500 p-4">No tracks found</li>
+          )}
+        </ul>
+      </div>
     </div>
-  )
+  );
 }

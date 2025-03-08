@@ -1,87 +1,67 @@
-"use client"
+"use client";
 
-import { useEffect, useState } from "react"
-import { createBrowserClient } from '@supabase/ssr'
-import { SongCard } from "@/components/songfest/SongCard"
-
-interface Songfest {
-  id: string
-  sender: string
-  receiver: string
-  message: string
-  track_id: string
-  created_at: string
-}
+import { useState, useEffect } from "react";
+import { createClient } from "@/utils/supabase/client";
+import SongfestCardComponent from "@/components/songfest/SongfestCard";
+import { type SongfestCard } from "@/types/songfest";
 
 export default function SongfestPage() {
-  const [songfests, setSongfests] = useState<Songfest[]>([])
-  const [loading, setLoading] = useState(true)
-  
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const [songfests, setSongfests] = useState<SongfestCard[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchSongfests = async () => {
+    async function fetchSongfests() {
+      setIsLoading(true);
+      setError(null);
+
       try {
-        const { data, error } = await supabase
+        const supabase = createClient();
+        const { data, error: supabaseError } = await supabase
           .from("songfests")
           .select("*")
-          .order("created_at", { ascending: false })
+          .order("created_at", { ascending: false });
 
-        if (error) throw error
-        setSongfests(data || [])
-      } catch (error) {
-        console.error("Error:", error)
+        if (supabaseError) {
+          throw new Error(`Error fetching songfests: ${supabaseError.message}`);
+        }
+
+        setSongfests(Array.isArray(data) ? data : []);
+      } catch (err: any) {
+        console.error("Failed to fetch songfests:", err);
+        setError("Failed to load songfests. Please try again later.");
       } finally {
-        setLoading(false)
+        setIsLoading(false);
       }
     }
 
-    fetchSongfests()
-
-    // Subscribe to changes
-    const channel = supabase
-      .channel('songfests')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'songfests' }, () => {
-        fetchSongfests()
-      })
-      .subscribe()
-
-    return () => {
-      channel.unsubscribe()
-    }
-  }, [supabase])
-
-  if (loading) {
-    return (
-      <div className="container mx-auto py-8 px-4 text-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-primary mx-auto"></div>
-      </div>
-    )
-  }
+    fetchSongfests();
+  }, []);
 
   return (
-    <main className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold text-center mb-8">Songfest</h1>
-      {songfests && songfests.length > 0 ? (
+    <div className="container mx-auto px-4 py-8">
+      <h1 className="text-4xl font-extrabold mb-10 text-center bg-gradient-to-r from-blue-300 to-purple-600 bg-clip-text text-transparent p-2">
+        Songfest 12 SIJA A
+      </h1>
+      
+      {isLoading ? (
+        <div className="flex justify-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+        </div>
+      ) : error ? (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+          {error}
+        </div>
+      ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {songfests.map((songfest) => (
-            <SongCard
+            <SongfestCardComponent 
               key={songfest.id}
-              sender={songfest.sender}
-              receiver={songfest.receiver}
-              message={songfest.message}
-              trackId={songfest.track_id}
+              songfest={songfest}
             />
           ))}
         </div>
-      ) : (
-        <p className="text-center text-muted-foreground">
-          Belum ada kiriman Songfest.
-        </p>
       )}
-    </main>
-  )
+    </div>
+  );
 }

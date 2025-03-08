@@ -1,7 +1,7 @@
 "use client"
 
-import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
-import { useTheme } from "next-themes"
+import { useEffect, useState } from "react"
+import Image from "next/image"
 
 interface SongCardProps {
   sender: string
@@ -10,52 +10,76 @@ interface SongCardProps {
   trackId: string
 }
 
+interface TrackInfo {
+  name: string
+  artists: { name: string }[]
+  album: { images: { url: string }[] }
+}
+
 export function SongCard({ sender, receiver, message, trackId }: SongCardProps) {
-  const { resolvedTheme } = useTheme()
+  const [trackInfo, setTrackInfo] = useState<TrackInfo | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchTrackInfo = async () => {
+      try {
+        // Fetch track info from Spotify API through our API endpoint
+        const res = await fetch(`/api/spotify/track?id=${trackId}`)
+        
+        if (!res.ok) {
+          throw new Error("Failed to fetch track")
+        }
+        
+        const data = await res.json()
+        setTrackInfo(data)
+      } catch (error) {
+        console.error("Error fetching track:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    if (trackId) {
+      fetchTrackInfo()
+    }
+  }, [trackId])
+
+  if (loading) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-4 flex flex-col animate-pulse">
+        <div className="bg-gray-200 h-32 w-32 rounded-md self-center mb-4"></div>
+        <div className="bg-gray-200 h-6 w-3/4 rounded mb-2"></div>
+        <div className="bg-gray-200 h-4 w-1/2 rounded mb-4"></div>
+        <div className="bg-gray-200 h-16 w-full rounded"></div>
+      </div>
+    )
+  }
 
   return (
-    <Card className="w-full max-w-md mx-auto bg-gradient-to-br from-background via-background to-muted shadow-lg hover:shadow-xl transition-all duration-300 border border-border/50 hover:border-primary/20">
-      <CardHeader className="pb-2">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-muted-foreground">Dari</span>
-            <span className="px-3 py-1 text-sm bg-primary/10 rounded-full text-primary">
-              {sender}
-            </span>
-          </div>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-muted-foreground">Untuk</span>
-            <span className="px-3 py-1 text-sm bg-primary/10 rounded-full text-primary">
-              {receiver}
-            </span>
-          </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="pb-6">
-        <div className="relative">
-          <blockquote className="pl-4 border-l-2 border-primary italic text-muted-foreground">
-            "{message}"
-          </blockquote>
-          <div className="absolute -left-[2px] top-0 h-full w-[2px] bg-gradient-to-b from-primary/50 to-primary/0" />
-        </div>
-      </CardContent>
-
-      <CardFooter className="p-0">
-        <div className="w-full rounded-b-lg overflow-hidden bg-background/50">
-          <iframe
-            key={resolvedTheme} // Force re-render when theme changes
-            src={`https://open.spotify.com/embed/track/${trackId}?utm_source=generator&theme=${resolvedTheme === 'dark' ? '0' : '1'}`}
-            width="100%"
-            height="352"
-            frameBorder="0"
-            allowFullScreen
-            allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture"
-            loading="lazy"
-            className="rounded-none transition-all duration-300"
+    <div className="bg-white rounded-lg shadow-md p-4 flex flex-col">
+      {trackInfo && trackInfo.album.images[0] && (
+        <div className="mb-4 self-center">
+          <Image
+            src={trackInfo.album.images[0].url}
+            alt={trackInfo.name}
+            width={128}
+            height={128}
+            className="rounded-md"
           />
         </div>
-      </CardFooter>
-    </Card>
+      )}
+      <h3 className="text-lg font-semibold mb-1">
+        {trackInfo ? trackInfo.name : "Unknown Track"}
+      </h3>
+      <p className="text-sm text-gray-500 mb-3">
+        {trackInfo
+          ? trackInfo.artists.map((a) => a.name).join(", ")
+          : "Unknown Artist"}
+      </p>
+      <p className="text-sm text-gray-700 italic mb-2">"{message}"</p>
+      <div className="mt-auto text-xs text-gray-500">
+        From {sender} to {receiver}
+      </div>
+    </div>
   )
 }

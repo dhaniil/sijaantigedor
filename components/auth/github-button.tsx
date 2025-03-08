@@ -1,15 +1,15 @@
 "use client"
 
+import { AuthButtonProps } from '@/types/auth'
 import { Button } from "@/components/ui/button"
-import { createBrowserClient } from "@supabase/ssr"
+import { createClient } from '@/utils/supabase/client'
+import { GithubIcon } from 'lucide-react'
 import { useState } from "react"
 
-export default function GitHubButton() {
+export default function GitHubButton({ redirectPath }: AuthButtonProps) {
   const [isLoading, setIsLoading] = useState(false)
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = createClient()
+
 
   const handleSignIn = async () => {
     try {

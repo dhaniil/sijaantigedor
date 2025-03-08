@@ -1,33 +1,32 @@
 "use client"
 
-import { useState } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import SpotifyButton from "./spotify-button"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import GitHubButton from "./github-button"
+import GoogleButton from "./google-button"
+import DiscordButton from "./discord-button"
 
-type LoginModalProps = {
-  redirectPath?: string;
+interface LoginModalProps {
+  isOpen: boolean
+  onClose: () => void
+  redirectPath?: string
 }
 
-export default function LoginModal({ redirectPath }: LoginModalProps) {
-  const [isOpen, setIsOpen] = useState(false)
-
+export default function LoginModal({ isOpen, onClose, redirectPath }: LoginModalProps) {
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline">Login</Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Selamat Datang!</DialogTitle>
+          <DialogDescription>
+            Login untuk mengakses semua fitur
+          </DialogDescription>
         </DialogHeader>
         <div className="grid gap-4 py-4">
-          <SpotifyButton redirectPath={redirectPath} />
-            <GitHubButton />
-          <p className="text-center text-sm text-muted-foreground">
-            Login untuk memeriahkan
-          </p>
+          <div className="space-y-3">
+            <GitHubButton redirectPath={redirectPath} />
+            <GoogleButton redirectPath={redirectPath} />
+            <DiscordButton redirectPath={redirectPath} />
+          </div>
         </div>
       </DialogContent>
     </Dialog>

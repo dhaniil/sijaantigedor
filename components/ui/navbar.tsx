@@ -9,10 +9,13 @@ import { useEffect, useState } from "react"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
+import { usePathname } from "next/navigation"
 
 function Navbar() {
   const [user, setUser] = useState<any>(null)
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false)
+  const pathname = usePathname()
   const supabase = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -40,16 +43,36 @@ function Navbar() {
   }, [supabase.auth])
 
   const NavLinks = () => (
-    <Link 
-      href="/songfest" 
-      className="text-sm relative font-medium transition-colors hover:text-primary
-        after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
-        after:transition-all after:-bottom-[1.5px] hover:after:w-full 
-        after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white"
-    >
-      Songfest
-    </Link>
+    <>
+      <Link 
+        href="/songfest" 
+        className={`text-sm relative font-medium transition-colors hover:text-primary
+          after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
+          after:transition-all after:-bottom-[1.5px] hover:after:w-full 
+          after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white ${
+            pathname === "/songfest" ? "text-blue-500" : ""
+          }`}
+      >
+        Songfest
+      </Link>
+      <Link 
+        href="/about" 
+        className={`text-sm relative font-medium transition-colors hover:text-primary
+          after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
+          after:transition-all after:-bottom-[1.5px] hover:after:w-full 
+          after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white ${
+            pathname === "/about" ? "text-blue-500" : ""
+          }`}
+      >
+        About
+      </Link>
+    </>
   )
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut()
+    window.location.reload() // Reload setelah sign out
+  }
 
   return (
     <nav className="sticky top-0 z-50 w-full backdrop-blur-sm bg-background/80 border-b">
@@ -71,8 +94,20 @@ function Navbar() {
             </div>
 
             <div className="flex items-center space-x-4">
-              <ThemeSwitcher />
-              {user ? <ProfileMenu user={user} /> : <LoginModal />}
+              <ThemeSwitcher></ThemeSwitcher>
+              {user ? (
+                <ProfileMenu user={user} />
+              ) : (
+                <Button onClick={() => setIsLoginModalOpen(true)}>
+                  Login
+                </Button>
+              )}
+              
+              <LoginModal 
+                isOpen={isLoginModalOpen}
+                onClose={() => setIsLoginModalOpen(false)}
+                redirectPath={pathname}
+              />
 
               {/* Mobile Menu */}
               <Sheet>

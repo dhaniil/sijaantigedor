@@ -1,44 +1,46 @@
-import { createServerClient } from '@supabase/ssr'
+import { createClient } from '@/utils/supabase/server'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({
-    request,
+    request: {
+      headers: request.headers,
+    },
   })
 
-  const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll()
-        },
-        setAll(cookiesToSet) {
-          cookiesToSet.forEach(({ name, value, options }) => {
-            response.cookies.set(name, value, options)
-          })
-        },
-      },
-    }
-  )
+  const supabase = await createClient()
 
-  // Always verify user with getUser()
-  const { data: { user }, error } = await supabase.auth.getUser()
+  // Do not run code between createServerClient and
+  // supabase.auth.getUser(). A simple mistake could make it very hard to debug
+  // issues with users being randomly logged out.
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
-  // Public routes
-  const isPublicRoute = request.nextUrl.pathname.startsWith('/sign-in') || 
-                       request.nextUrl.pathname.startsWith('/auth') ||
-                       request.nextUrl.pathname === '/'
+  // Check protected routes and redirect to login if not authenticated
+  const isProtectedRoute = 
+    !request.nextUrl.pathname.startsWith('/login') &&
+    !request.nextUrl.pathname.startsWith('/auth') &&
+    request.nextUrl.pathname !== '/' &&
+    !request.nextUrl.pathname.includes('.');
 
-  if (!user && !isPublicRoute) {
-    const redirectUrl = new URL('/sign-in', request.url)
-    return NextResponse.redirect(redirectUrl)
+  if (!user && isProtectedRoute) {
+    // Redirect to login page
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    // Keep the original url for redirecting after login
+    url.searchParams.set('redirectTo', request.nextUrl.pathname)
+    return NextResponse.redirect(url)
   }
 
-  if (user && request.nextUrl.pathname.startsWith('/sign-in')) {
-    const redirectUrl = new URL('/protected', request.url)
-    return NextResponse.redirect(redirectUrl)
+  // Redirect from old sign-in and sign-up pages to the new login page
+  if (
+    !user && 
+    (request.nextUrl.pathname === '/sign-in' || request.nextUrl.pathname === '/sign-up')
+  ) {
+    const url = request.nextUrl.clone()
+    url.pathname = '/login'
+    return NextResponse.redirect(url)
   }
 
   return response
