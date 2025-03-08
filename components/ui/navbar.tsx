@@ -6,7 +6,7 @@ import LoginModal from "@/components/auth/login-modal"
 import ProfileMenu from "@/components/auth/profile-menu"
 import { createBrowserClient } from '@supabase/ssr'
 import { useEffect, useState } from "react"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTrigger, SheetHeader, SheetTitle } from "@/components/ui/sheet"
 import { Button } from "@/components/ui/button"
 import { Menu } from "lucide-react"
 import { usePathname } from "next/navigation"
@@ -46,7 +46,7 @@ function Navbar() {
     <>
       <Link 
         href="/songfest" 
-        className={`text-sm relative font-medium transition-colors hover:text-primary
+        className={`text-sm relative font-medium transition-colors hover:text-primary w-fit
           after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
           after:transition-all after:-bottom-[1.5px] hover:after:w-full 
           after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white ${
@@ -57,7 +57,7 @@ function Navbar() {
       </Link>
       <Link 
         href="/about" 
-        className={`text-sm relative font-medium transition-colors hover:text-primary
+        className={`text-sm relative font-medium transition-colors hover:text-primary w-fit
           after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
           after:transition-all after:-bottom-[1.5px] hover:after:w-full 
           after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white ${
@@ -118,6 +118,9 @@ function Navbar() {
                   </Button>
                 </SheetTrigger>
                 <SheetContent side="right" className="w-[240px] sm:w-[300px]">
+                  <SheetHeader>
+                    <SheetTitle>Menu</SheetTitle>
+                  </SheetHeader>
                   <div className="flex flex-col space-y-4 py-4">
                     <NavLinks />
                   </div>
