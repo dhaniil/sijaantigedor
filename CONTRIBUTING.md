@@ -3,7 +3,7 @@ Terima kasih sudah tertarik untuk berkontribusi pada **Sija-Antigedor**!. Beriku
 
 ## Rekomendasi sebelum berkontribusi:
 - Sangat direkomendasikan menggunakan dokumentasi NEXT.js dan React sebagai referensi 
-- Mau belajar TypeScript (opsional😹)
+- Tahu dasar-dasar TypeScript
 
 ## Struktur Branch
 - `main` - Branch production yang sudah dideploy di Vercel
@@ -49,12 +49,17 @@ hotfix: memperbaiki critical security issue
 
    # Copy environment variables
    cp .env.example .env.local
+   ```
+   
+   > ⚠️ **Mendapatkan File .env**
+   > Untuk mendapatkan isi file `.env.local`, gunakan perintah `/env-web-kelas` di bot kelas.
 
-   # Run development server
+3. **Jalankan Development Server**
+   ```bash
    npm run dev
    ```
 
-3. **Buat Branch Baru dari Branch Dev**
+4. **Buat Branch Baru dari Branch Dev**
    ```bash
    # Pastikan kamu berada di branch dev dan sudah updated
    git checkout dev
@@ -65,18 +70,18 @@ hotfix: memperbaiki critical security issue
    contoh: git checkout -b contri/dark-mode
    ```
 
-4. **Lakukan Perubahan dan Commit**
+5. **Lakukan Perubahan dan Commit**
    ```bash
    git add .
    git commit -m "feat: menambahkan fitur X"
    ```
 
-5. **Push Perubahan ke GitHub**
+6. **Push Perubahan ke GitHub**
    ```bash
    git push origin contri/nama-fitur
    ```
 
-6. **Buat Pull Request**
+7. **Buat Pull Request**
    - Buka repository ini di GitHub
    - Buat Pull Request dari branch `contri/nama-fitur` ke branch `dev`
    - Pull Request akan direview oleh maintainer Laztech dan Aryok
@@ -122,3 +127,4 @@ hotfix: memperbaiki critical security issue
 Jika menemukan bug, silakan buat Issue dan sertakan screenshot Bugnya
 
 Terima kasih atas kontribusi kalian!
+
