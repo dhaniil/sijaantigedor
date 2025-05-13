@@ -1,7 +1,7 @@
 export default function AboutPage() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-4xl font-extrabold mb-8 text-center bg-gradient-to-r from-blue-300 to-purple-600 bg-clip-text text-transparent p-2">
+      <h1 className="text-4xl font-extrabold mb-8 text-center bg-violet-500 bg-clip-text text-transparent p-2">
         Tentang 12 SIJA A
       </h1>
 
@@ -28,7 +28,7 @@ export default function AboutPage() {
 
         <section className="bg-card rounded-lg p-6 shadow-lg">
           <h2 className="text-2xl font-bold mb-4">Teknologi yang Digunakan</h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4 ">
             {[
               "Next.js 15",
               "TypeScript",
@@ -39,7 +39,7 @@ export default function AboutPage() {
             ].map((tech) => (
               <div 
                 key={tech}
-                className="bg-muted p-3 rounded-md text-center text-sm font-medium"
+                className="bg-gradient-to-br from-slate-200/10 via-slate-500/10 to-slate-900/50 transition delay-150 duration-300 ease-in-out hover:-translate-y-1 hover:scale-110 p-3 rounded-md text-center text-sm font-medium shadow-sm shadow-violet-500 border border-violet-600/10"
               >
                 {tech}
               </div>

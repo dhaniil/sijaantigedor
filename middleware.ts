@@ -23,6 +23,7 @@ export async function middleware(request: NextRequest) {
     !request.nextUrl.pathname.startsWith('/auth') &&
     !request.nextUrl.pathname.startsWith('/about') &&
     !request.nextUrl.pathname.startsWith('/songfest') &&
+    !request.nextUrl.pathname.startsWith('/gallery') &&
     request.nextUrl.pathname !== '/' &&
     !request.nextUrl.pathname.includes('.');
 

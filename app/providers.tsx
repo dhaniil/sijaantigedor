@@ -8,7 +8,7 @@ export const AuthContext = createContext<{ user: any | null }>({ user: null })
 
 interface ProvidersProps {
   children: React.ReactNode
-  defaultTheme?: "light" | "dark" | "system"
+  defaultTheme?: | "dark" | "system"
   attribute?: string
   enableSystem?: boolean
   disableTransitionOnChange?: boolean

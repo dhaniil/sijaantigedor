@@ -45,6 +45,17 @@ function Navbar() {
   const NavLinks = () => (
     <>
       <Link 
+        href="/" 
+        className={`text-sm relative font-medium transition-colors hover:text-primary w-fit
+          after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
+          after:transition-all after:-bottom-[1.5px] hover:after:w-full 
+          after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white ${
+            pathname === "/" ? "text-blue-500" : ""
+          }`}
+      >
+        Home
+      </Link>
+      <Link 
         href="/songfest" 
         className={`text-sm relative font-medium transition-colors hover:text-primary w-fit
           after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
@@ -65,6 +76,17 @@ function Navbar() {
           }`}
       >
         About
+      </Link>
+      <Link 
+        href="/gallery" 
+        className={`text-sm relative font-medium transition-colors hover:text-primary w-fit
+          after:content-[''] after:absolute after:left-0 after:w-0 after:duration-300 
+          after:transition-all after:-bottom-[1.5px] hover:after:w-full 
+          after:border-b-2 hover:after:border-dashed after:border-black dark:after:border-white ${
+            pathname === "/gallery" ? "text-blue-500" : ""
+          }`}
+      >
+        Gallery
       </Link>
     </>
   )
