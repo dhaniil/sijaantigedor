@@ -1,0 +1,12 @@
+{
+	"$schema": "https://unpkg.com/jsrepo@2.0.2/schemas/project-config.json",
+	"repos": [
+		"github/ieedan/std"
+	],
+	"includeTests": false,
+	"watermark": true,
+	"configFiles": {},
+	"paths": {
+		"*": "./src/blocks"
+	}
+}
